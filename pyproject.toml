@@ -69,6 +69,11 @@ ignore = [
     "F401",  # unused imports (common in __init__.py)
     "W191",  # indentation contains tabs (Frappe standard)
     "E101",  # indentation contains mixed spaces and tabs
+    "C401",  # unnecessary generator (can be set comprehension)
+    "C403",  # unnecessary list comprehension (can be set comprehension)
+    "F841",  # local variable assigned but never used
+    "F601",  # dictionary key literal repeated
+    "B007",  # loop control variable not used within loop body
 ]
 
 [tool.ruff.lint.isort]
