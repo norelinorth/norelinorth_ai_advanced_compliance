@@ -299,9 +299,16 @@ class GraphSyncEngine:
 				ComplianceGraphRelationship,
 			)
 
-			ComplianceGraphRelationship.create_relationship(
-				relationship_type=relationship_type, source_entity=source_entity, target_entity=target_entity
-			)
+			# Handle race condition - another process might have created it
+			try:
+				ComplianceGraphRelationship.create_relationship(
+					relationship_type=relationship_type,
+					source_entity=source_entity,
+					target_entity=target_entity,
+				)
+			except frappe.exceptions.DuplicateEntryError:
+				# Already exists, ignore
+				pass
 
 	def _handle_delete(self, doc, entity_type):
 		"""Handle document deletion."""
