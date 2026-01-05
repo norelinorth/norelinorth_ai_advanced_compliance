@@ -4,7 +4,7 @@ app_publisher = "Noreli North"
 app_description = "Next-generation GRC with Knowledge Graph and AI Intelligence for ERPNext"
 app_email = ""
 app_license = "MIT"
-app_version = "1.0.2"
+app_version = "1.1.0"
 
 # Required Apps
 required_apps = ["frappe", "erpnext"]
