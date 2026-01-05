@@ -25,12 +25,7 @@ def sync_high_priority_feeds():
 	from .connectors import get_connector
 
 	feeds = frappe.get_all(
-		"Regulatory Feed Source",
-		filters={
-			"enabled": 1,
-			"sync_frequency": "Hourly"
-		},
-		pluck="name"
+		"Regulatory Feed Source", filters={"enabled": 1, "sync_frequency": "Hourly"}, pluck="name"
 	)
 
 	for feed_name in feeds:
@@ -40,14 +35,12 @@ def sync_high_priority_feeds():
 			count = connector.sync()
 
 			if count > 0:
-				frappe.logger().info(
-					f"Synced {count} updates from {feed_name}"
-				)
+				frappe.logger().info(f"Synced {count} updates from {feed_name}")
 
 		except Exception as e:
 			frappe.log_error(
 				message=f"{str(e)}\n{frappe.get_traceback()}",
-				title=_("Feed Sync Error: {0}").format(feed_name)
+				title=_("Feed Sync Error: {0}").format(feed_name),
 			)
 
 	frappe.db.commit()
@@ -62,11 +55,7 @@ def sync_all_feeds():
 	"""
 	from .connectors import get_connector
 
-	feeds = frappe.get_all(
-		"Regulatory Feed Source",
-		filters={"enabled": 1},
-		pluck="name"
-	)
+	feeds = frappe.get_all("Regulatory Feed Source", filters={"enabled": 1}, pluck="name")
 
 	total_updates = 0
 
@@ -80,15 +69,13 @@ def sync_all_feeds():
 		except Exception as e:
 			frappe.log_error(
 				message=f"{str(e)}\n{frappe.get_traceback()}",
-				title=_("Feed Sync Error: {0}").format(feed_name)
+				title=_("Feed Sync Error: {0}").format(feed_name),
 			)
 
 	frappe.db.commit()
 
 	if total_updates > 0:
-		frappe.logger().info(
-			f"Daily sync complete: {total_updates} total updates"
-		)
+		frappe.logger().info(f"Daily sync complete: {total_updates} total updates")
 		# Trigger analysis of new updates
 		analyze_new_updates()
 
@@ -106,11 +93,7 @@ def analyze_new_updates():
 	alert_manager = RegulatoryAlertManager()
 
 	# Get unanalyzed updates
-	updates = frappe.get_all(
-		"Regulatory Update",
-		filters={"status": "New"},
-		pluck="name"
-	)
+	updates = frappe.get_all("Regulatory Update", filters={"status": "New"}, pluck="name")
 
 	for update_name in updates:
 		try:
@@ -124,22 +107,22 @@ def analyze_new_updates():
 
 			# Get or create changes for this update
 			changes = frappe.get_all(
-				"Regulatory Change",
-				filters={"regulatory_update": update_doc.name},
-				pluck="name"
+				"Regulatory Change", filters={"regulatory_update": update_doc.name}, pluck="name"
 			)
 
 			# If no changes exist, create one from the update content
 			if not changes and update_doc.full_text:
-				change_doc = frappe.get_doc({
-					"doctype": "Regulatory Change",
-					"regulatory_update": update_doc.name,
-					"change_type": "New Requirement",
-					"severity": "Moderate",
-					"summary_of_change": update_doc.summary or update_doc.title,
-					"new_text": update_doc.full_text[:10000],
-					"status": "Pending Analysis"
-				})
+				change_doc = frappe.get_doc(
+					{
+						"doctype": "Regulatory Change",
+						"regulatory_update": update_doc.name,
+						"change_type": "New Requirement",
+						"severity": "Moderate",
+						"summary_of_change": update_doc.summary or update_doc.title,
+						"new_text": update_doc.full_text[:10000],
+						"status": "Pending Analysis",
+					}
+				)
 				change_doc.insert(ignore_permissions=True)
 				changes = [change_doc.name]
 
@@ -164,7 +147,7 @@ def analyze_new_updates():
 		except Exception as e:
 			frappe.log_error(
 				message=f"{str(e)}\n{frappe.get_traceback()}",
-				title=_("Update Analysis Error: {0}").format(update_name)
+				title=_("Update Analysis Error: {0}").format(update_name),
 			)
 
 	frappe.db.commit()
@@ -213,25 +196,15 @@ def cleanup_old_updates():
 	# Find old implemented updates
 	old_updates = frappe.get_all(
 		"Regulatory Update",
-		filters={
-			"status": "Implemented",
-			"publication_date": ["<", cutoff_date]
-		},
-		pluck="name"
+		filters={"status": "Implemented", "publication_date": ["<", cutoff_date]},
+		pluck="name",
 	)
 
 	# Archive (could be status change or actual archival)
 	for update_name in old_updates:
-		frappe.db.set_value(
-			"Regulatory Update",
-			update_name,
-			"status",
-			"Not Applicable"
-		)
+		frappe.db.set_value("Regulatory Update", update_name, "status", "Not Applicable")
 
 	frappe.db.commit()
 
 	if old_updates:
-		frappe.logger().info(
-			f"Archived {len(old_updates)} old regulatory updates"
-		)
+		frappe.logger().info(f"Archived {len(old_updates)} old regulatory updates")

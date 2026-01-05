@@ -18,10 +18,10 @@ Test Coverage:
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
 import frappe
-from frappe.utils import nowdate, add_days, getdate
+from frappe.utils import add_days, getdate, nowdate
 
 
 class TestRegulatoryFeedSource(unittest.TestCase):
@@ -42,15 +42,17 @@ class TestRegulatoryFeedSource(unittest.TestCase):
 
 	def test_create_rss_feed_source(self):
 		"""Test creating an RSS feed source."""
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Feed Source",
-			"source_name": "Test SEC RSS Feed",
-			"feed_type": "RSS",
-			"url": "https://www.sec.gov/news/pressreleases.rss",
-			"regulatory_body": "SEC",
-			"enabled": 1,
-			"sync_frequency": "Daily"
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Feed Source",
+				"source_name": "Test SEC RSS Feed",
+				"feed_type": "RSS",
+				"url": "https://www.sec.gov/news/pressreleases.rss",
+				"regulatory_body": "SEC",
+				"enabled": 1,
+				"sync_frequency": "Daily",
+			}
+		)
 		doc.insert()
 
 		self.assertEqual(doc.source_name, "Test SEC RSS Feed")
@@ -59,26 +61,30 @@ class TestRegulatoryFeedSource(unittest.TestCase):
 
 	def test_feed_source_url_validation(self):
 		"""Test that invalid URLs are rejected."""
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Feed Source",
-			"source_name": "Invalid URL Feed",
-			"feed_type": "RSS",
-			"url": "not-a-valid-url",
-			"enabled": 1
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Feed Source",
+				"source_name": "Invalid URL Feed",
+				"feed_type": "RSS",
+				"url": "not-a-valid-url",
+				"enabled": 1,
+			}
+		)
 
 		with self.assertRaises(frappe.ValidationError):
 			doc.insert()
 
 	def test_sec_edgar_requires_user_agent(self):
 		"""Test that SEC EDGAR feeds require user agent."""
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Feed Source",
-			"source_name": "SEC EDGAR Feed",
-			"feed_type": "SEC EDGAR",
-			"url": "https://www.sec.gov/cgi-bin/browse-edgar",
-			"user_agent": ""  # Empty user agent
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Feed Source",
+				"source_name": "SEC EDGAR Feed",
+				"feed_type": "SEC EDGAR",
+				"url": "https://www.sec.gov/cgi-bin/browse-edgar",
+				"user_agent": "",  # Empty user agent
+			}
+		)
 
 		with self.assertRaises(frappe.ValidationError):
 			doc.insert()
@@ -102,15 +108,17 @@ class TestRegulatoryUpdate(unittest.TestCase):
 
 	def test_create_regulatory_update(self):
 		"""Test creating a regulatory update."""
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Update",
-			"title": "SEC Final Rule on Climate Disclosure",
-			"regulatory_body": "SEC",
-			"document_type": "Rule",
-			"publication_date": nowdate(),
-			"effective_date": add_days(nowdate(), 90),
-			"summary": "New climate disclosure requirements for public companies."
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Update",
+				"title": "SEC Final Rule on Climate Disclosure",
+				"regulatory_body": "SEC",
+				"document_type": "Rule",
+				"publication_date": nowdate(),
+				"effective_date": add_days(nowdate(), 90),
+				"summary": "New climate disclosure requirements for public companies.",
+			}
+		)
 		doc.insert()
 
 		self.assertIsNotNone(doc.name)
@@ -120,11 +128,9 @@ class TestRegulatoryUpdate(unittest.TestCase):
 		"""Test automatic calculation of days until effective."""
 		effective_date = add_days(nowdate(), 30)
 
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Update",
-			"title": "Test Update",
-			"effective_date": effective_date
-		})
+		doc = frappe.get_doc(
+			{"doctype": "Regulatory Update", "title": "Test Update", "effective_date": effective_date}
+		)
 		doc.insert()
 
 		self.assertEqual(doc.days_until_effective, 30)
@@ -132,20 +138,13 @@ class TestRegulatoryUpdate(unittest.TestCase):
 	def test_unique_url_constraint(self):
 		"""Test that original_url must be unique."""
 		import time
+
 		url = f"https://www.sec.gov/rules/final/2024/test-rule-{time.time()}.htm"
 
-		doc1 = frappe.get_doc({
-			"doctype": "Regulatory Update",
-			"title": "First Update",
-			"original_url": url
-		})
+		doc1 = frappe.get_doc({"doctype": "Regulatory Update", "title": "First Update", "original_url": url})
 		doc1.insert()
 
-		doc2 = frappe.get_doc({
-			"doctype": "Regulatory Update",
-			"title": "Second Update",
-			"original_url": url
-		})
+		doc2 = frappe.get_doc({"doctype": "Regulatory Update", "title": "Second Update", "original_url": url})
 
 		with self.assertRaises((frappe.DuplicateEntryError, frappe.UniqueValidationError)):
 			doc2.insert()
@@ -163,11 +162,9 @@ class TestRegulatoryChange(unittest.TestCase):
 		"""Set up before each test."""
 		frappe.db.rollback()
 		# Create a regulatory update for each test
-		self.update = frappe.get_doc({
-			"doctype": "Regulatory Update",
-			"title": "Test Regulatory Update",
-			"regulatory_body": "SEC"
-		})
+		self.update = frappe.get_doc(
+			{"doctype": "Regulatory Update", "title": "Test Regulatory Update", "regulatory_body": "SEC"}
+		)
 		self.update.insert()
 
 	def tearDown(self):
@@ -176,26 +173,30 @@ class TestRegulatoryChange(unittest.TestCase):
 
 	def test_create_regulatory_change(self):
 		"""Test creating a regulatory change."""
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Change",
-			"regulatory_update": self.update.name,
-			"change_type": "Amendment",
-			"severity": "Major",
-			"summary_of_change": "Changed 'should' to 'must' in reporting requirements."
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Change",
+				"regulatory_update": self.update.name,
+				"change_type": "Amendment",
+				"severity": "Major",
+				"summary_of_change": "Changed 'should' to 'must' in reporting requirements.",
+			}
+		)
 		doc.insert()
 
 		self.assertIsNotNone(doc.name)
 
 	def test_auto_severity_upgrade(self):
 		"""Test that severity is upgraded when obligation changes."""
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Change",
-			"regulatory_update": self.update.name,
-			"change_type": "Amendment",
-			"severity": "Minor",
-			"obligation_changed": 1  # This should trigger upgrade
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Change",
+				"regulatory_update": self.update.name,
+				"change_type": "Amendment",
+				"severity": "Minor",
+				"obligation_changed": 1,  # This should trigger upgrade
+			}
+		)
 		doc.insert()
 
 		self.assertEqual(doc.severity, "Major")
@@ -214,27 +215,29 @@ class TestRegulatoryImpactAssessment(unittest.TestCase):
 		frappe.db.rollback()
 
 		# Create prerequisite documents for each test
-		self.update = frappe.get_doc({
-			"doctype": "Regulatory Update",
-			"title": "Test Update for Impact",
-			"regulatory_body": "SEC"
-		})
+		self.update = frappe.get_doc(
+			{"doctype": "Regulatory Update", "title": "Test Update for Impact", "regulatory_body": "SEC"}
+		)
 		self.update.insert()
 
-		self.change = frappe.get_doc({
-			"doctype": "Regulatory Change",
-			"regulatory_update": self.update.name,
-			"change_type": "New Requirement",
-			"severity": "Major"
-		})
+		self.change = frappe.get_doc(
+			{
+				"doctype": "Regulatory Change",
+				"regulatory_update": self.update.name,
+				"change_type": "New Requirement",
+				"severity": "Major",
+			}
+		)
 		self.change.insert()
 
 		# Create a control activity
-		self.control = frappe.get_doc({
-			"doctype": "Control Activity",
-			"control_name": "Test Control for Impact",
-			"control_owner": "Administrator"
-		})
+		self.control = frappe.get_doc(
+			{
+				"doctype": "Control Activity",
+				"control_name": "Test Control for Impact",
+				"control_owner": "Administrator",
+			}
+		)
 		self.control.insert()
 
 	def tearDown(self):
@@ -243,13 +246,15 @@ class TestRegulatoryImpactAssessment(unittest.TestCase):
 
 	def test_create_impact_assessment(self):
 		"""Test creating an impact assessment."""
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Impact Assessment",
-			"regulatory_change": self.change.name,
-			"control_activity": self.control.name,
-			"confidence_score": 85.0,
-			"impact_type": "Review Required"
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Impact Assessment",
+				"regulatory_change": self.change.name,
+				"control_activity": self.control.name,
+				"confidence_score": 85.0,
+				"impact_type": "Review Required",
+			}
+		)
 		doc.insert()
 
 		self.assertIsNotNone(doc.name)
@@ -257,12 +262,14 @@ class TestRegulatoryImpactAssessment(unittest.TestCase):
 
 	def test_auto_set_priority(self):
 		"""Test automatic priority setting based on severity."""
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Impact Assessment",
-			"regulatory_change": self.change.name,
-			"control_activity": self.control.name,
-			"confidence_score": 90.0
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Impact Assessment",
+				"regulatory_change": self.change.name,
+				"control_activity": self.control.name,
+				"confidence_score": 90.0,
+			}
+		)
 		doc.insert()
 
 		# Change has "Major" severity, so priority should be "High"
@@ -275,7 +282,7 @@ class TestDocumentParser(unittest.TestCase):
 	def test_extract_cfr_citations(self):
 		"""Test extraction of CFR citations."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.parsers.document_parser import (
-			DocumentParser
+			DocumentParser,
 		)
 
 		text = """
@@ -292,7 +299,7 @@ class TestDocumentParser(unittest.TestCase):
 	def test_extract_asc_citations(self):
 		"""Test extraction of ASC citations."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.parsers.document_parser import (
-			DocumentParser
+			DocumentParser,
 		)
 
 		text = """
@@ -309,7 +316,7 @@ class TestDocumentParser(unittest.TestCase):
 	def test_extract_effective_date(self):
 		"""Test extraction of effective dates."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.parsers.document_parser import (
-			DocumentParser
+			DocumentParser,
 		)
 
 		text = "This rule becomes effective January 1, 2025."
@@ -325,7 +332,7 @@ class TestDocumentParser(unittest.TestCase):
 	def test_extract_keywords(self):
 		"""Test keyword extraction."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.parsers.document_parser import (
-			DocumentParser
+			DocumentParser,
 		)
 
 		text = """
@@ -343,7 +350,7 @@ class TestDocumentParser(unittest.TestCase):
 	def test_detect_obligation_level(self):
 		"""Test obligation level detection."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.parsers.document_parser import (
-			DocumentParser
+			DocumentParser,
 		)
 
 		text = """
@@ -365,7 +372,7 @@ class TestChangeDetector(unittest.TestCase):
 	def test_calculate_similarity(self):
 		"""Test text similarity calculation."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.detection.change_detector import (
-			ChangeDetector
+			ChangeDetector,
 		)
 
 		old_text = "Companies should file quarterly reports."
@@ -380,7 +387,7 @@ class TestChangeDetector(unittest.TestCase):
 	def test_detect_changes(self):
 		"""Test change detection."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.detection.change_detector import (
-			ChangeDetector
+			ChangeDetector,
 		)
 
 		old_text = "Line 1\nLine 2\nLine 3"
@@ -395,7 +402,7 @@ class TestChangeDetector(unittest.TestCase):
 	def test_classify_severity(self):
 		"""Test severity classification."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.detection.change_detector import (
-			ChangeDetector
+			ChangeDetector,
 		)
 
 		# Test major change (new mandatory requirement)
@@ -412,7 +419,7 @@ class TestChangeDetector(unittest.TestCase):
 	def test_detect_obligation_changes(self):
 		"""Test obligation change detection."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.detection.change_detector import (
-			ChangeDetector
+			ChangeDetector,
 		)
 
 		old_text = "Companies should maintain records."
@@ -438,30 +445,32 @@ class TestImpactMapper(unittest.TestCase):
 		frappe.db.rollback()
 
 		# Create regulatory change for each test
-		self.update = frappe.get_doc({
-			"doctype": "Regulatory Update",
-			"title": "Impact Test Update",
-			"regulatory_body": "SEC"
-		})
+		self.update = frappe.get_doc(
+			{"doctype": "Regulatory Update", "title": "Impact Test Update", "regulatory_body": "SEC"}
+		)
 		self.update.insert()
 
-		self.change = frappe.get_doc({
-			"doctype": "Regulatory Change",
-			"regulatory_update": self.update.name,
-			"change_type": "Amendment",
-			"severity": "Major",
-			"summary_of_change": "New requirements for 17 CFR 240.10b-5 compliance.",
-			"new_text": "Companies must comply with 17 CFR 240.10b-5."
-		})
+		self.change = frappe.get_doc(
+			{
+				"doctype": "Regulatory Change",
+				"regulatory_update": self.update.name,
+				"change_type": "Amendment",
+				"severity": "Major",
+				"summary_of_change": "New requirements for 17 CFR 240.10b-5 compliance.",
+				"new_text": "Companies must comply with 17 CFR 240.10b-5.",
+			}
+		)
 		self.change.insert()
 
 		# Create control with matching citation
-		self.control = frappe.get_doc({
-			"doctype": "Control Activity",
-			"control_name": "SEC Rule 10b-5 Compliance Control",
-			"description": "Control to ensure compliance with 17 CFR 240.10b-5",
-			"control_owner": "Administrator"
-		})
+		self.control = frappe.get_doc(
+			{
+				"doctype": "Control Activity",
+				"control_name": "SEC Rule 10b-5 Compliance Control",
+				"description": "Control to ensure compliance with 17 CFR 240.10b-5",
+				"control_owner": "Administrator",
+			}
+		)
 		self.control.insert()
 
 	def tearDown(self):
@@ -471,7 +480,7 @@ class TestImpactMapper(unittest.TestCase):
 	def test_find_affected_controls(self):
 		"""Test finding affected controls."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.mapping.impact_mapper import (
-			ImpactMapper
+			ImpactMapper,
 		)
 
 		mapper = ImpactMapper(self.change)
@@ -485,7 +494,7 @@ class TestImpactMapper(unittest.TestCase):
 	def test_citation_matching_high_confidence(self):
 		"""Test that citation matches have high confidence."""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.mapping.impact_mapper import (
-			ImpactMapper
+			ImpactMapper,
 		)
 
 		mapper = ImpactMapper(self.change)
@@ -516,17 +525,17 @@ class TestRegulatoryAPI(unittest.TestCase):
 
 	def test_get_regulatory_timeline(self):
 		"""Test getting regulatory timeline."""
-		from advanced_compliance.advanced_compliance.regulatory_feeds.api import (
-			get_regulatory_timeline
-		)
+		from advanced_compliance.advanced_compliance.regulatory_feeds.api import get_regulatory_timeline
 
 		# Create update with future effective date
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Update",
-			"title": "Timeline Test Update",
-			"effective_date": add_days(nowdate(), 30),
-			"status": "Pending Review"
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Update",
+				"title": "Timeline Test Update",
+				"effective_date": add_days(nowdate(), 30),
+				"status": "Pending Review",
+			}
+		)
 		doc.insert()
 
 		timeline = get_regulatory_timeline(days=60)
@@ -538,18 +547,18 @@ class TestRegulatoryAPI(unittest.TestCase):
 
 	def test_get_feed_status(self):
 		"""Test getting feed status."""
-		from advanced_compliance.advanced_compliance.regulatory_feeds.api import (
-			get_feed_status
-		)
+		from advanced_compliance.advanced_compliance.regulatory_feeds.api import get_feed_status
 
 		# Create a feed source
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Feed Source",
-			"source_name": "Status Test Feed",
-			"feed_type": "RSS",
-			"url": "https://example.com/feed.rss",
-			"enabled": 1
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Feed Source",
+				"source_name": "Status Test Feed",
+				"feed_type": "RSS",
+				"url": "https://example.com/feed.rss",
+				"enabled": 1,
+			}
+		)
 		doc.insert()
 
 		status = get_feed_status()
@@ -561,9 +570,7 @@ class TestRegulatoryAPI(unittest.TestCase):
 
 	def test_get_compliance_dashboard_data(self):
 		"""Test getting dashboard data."""
-		from advanced_compliance.advanced_compliance.regulatory_feeds.api import (
-			get_compliance_dashboard_data
-		)
+		from advanced_compliance.advanced_compliance.regulatory_feeds.api import get_compliance_dashboard_data
 
 		data = get_compliance_dashboard_data()
 
@@ -577,61 +584,59 @@ class TestConnectorFactory(unittest.TestCase):
 
 	def test_get_rss_connector(self):
 		"""Test getting RSS connector."""
-		from advanced_compliance.advanced_compliance.regulatory_feeds.connectors import (
-			get_connector
-		)
+		from advanced_compliance.advanced_compliance.regulatory_feeds.connectors import get_connector
 
-		feed_source = frappe._dict({
-			"source_name": "Test RSS",
-			"feed_type": "RSS",
-			"url": "https://example.com/feed.rss",
-			"last_sync": None,
-			"user_agent": "Test/1.0",
-			"document_types": "",
-			"keywords": []
-		})
+		feed_source = frappe._dict(
+			{
+				"source_name": "Test RSS",
+				"feed_type": "RSS",
+				"url": "https://example.com/feed.rss",
+				"last_sync": None,
+				"user_agent": "Test/1.0",
+				"document_types": "",
+				"keywords": [],
+			}
+		)
 
 		connector = get_connector(feed_source)
 
 		from advanced_compliance.advanced_compliance.regulatory_feeds.connectors.rss_connector import (
-			RSSConnector
+			RSSConnector,
 		)
+
 		self.assertIsInstance(connector, RSSConnector)
 
 	def test_get_sec_connector(self):
 		"""Test getting SEC EDGAR connector."""
-		from advanced_compliance.advanced_compliance.regulatory_feeds.connectors import (
-			get_connector
-		)
+		from advanced_compliance.advanced_compliance.regulatory_feeds.connectors import get_connector
 
-		feed_source = frappe._dict({
-			"source_name": "Test SEC",
-			"feed_type": "SEC EDGAR",
-			"url": "https://www.sec.gov/feed",
-			"last_sync": None,
-			"user_agent": "Test/1.0",
-			"document_types": "",
-			"keywords": []
-		})
+		feed_source = frappe._dict(
+			{
+				"source_name": "Test SEC",
+				"feed_type": "SEC EDGAR",
+				"url": "https://www.sec.gov/feed",
+				"last_sync": None,
+				"user_agent": "Test/1.0",
+				"document_types": "",
+				"keywords": [],
+			}
+		)
 
 		connector = get_connector(feed_source)
 
 		from advanced_compliance.advanced_compliance.regulatory_feeds.connectors.sec_edgar import (
-			SECEdgarConnector
+			SECEdgarConnector,
 		)
+
 		self.assertIsInstance(connector, SECEdgarConnector)
 
 	def test_invalid_feed_type_raises_error(self):
 		"""Test that invalid feed type raises error."""
-		from advanced_compliance.advanced_compliance.regulatory_feeds.connectors import (
-			get_connector
-		)
+		from advanced_compliance.advanced_compliance.regulatory_feeds.connectors import get_connector
 
-		feed_source = frappe._dict({
-			"source_name": "Invalid Feed",
-			"feed_type": "INVALID_TYPE",
-			"url": "https://example.com"
-		})
+		feed_source = frappe._dict(
+			{"source_name": "Invalid Feed", "feed_type": "INVALID_TYPE", "url": "https://example.com"}
+		)
 
 		with self.assertRaises(frappe.ValidationError):
 			get_connector(feed_source)

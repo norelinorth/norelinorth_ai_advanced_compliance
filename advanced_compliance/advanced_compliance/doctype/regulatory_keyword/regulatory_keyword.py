@@ -9,4 +9,5 @@ class RegulatoryKeyword(Document):
 	Child table for storing keywords used in regulatory feed filtering
 	and impact mapping.
 	"""
+
 	pass

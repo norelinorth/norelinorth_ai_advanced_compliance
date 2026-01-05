@@ -33,15 +33,14 @@ class RSSConnector(BaseConnector):
 			import feedparser
 		except ImportError:
 			frappe.throw(
-				_("feedparser package is required for RSS feeds. "
-				  "Please install it with: pip install feedparser")
+				_(
+					"feedparser package is required for RSS feeds. "
+					"Please install it with: pip install feedparser"
+				)
 			)
 
 		try:
-			feed = feedparser.parse(
-				self.url,
-				agent=self.user_agent
-			)
+			feed = feedparser.parse(self.url, agent=self.user_agent)
 		except Exception as e:
 			self._log_error(_("Failed to fetch RSS feed"), e)
 			return []
@@ -50,14 +49,12 @@ class RSSConnector(BaseConnector):
 		if feed.bozo:
 			# Feed had errors but may still have entries
 			if not feed.entries:
-				self._log_error(
-					_("RSS parse error: {0}").format(feed.bozo_exception)
-				)
+				self._log_error(_("RSS parse error: {0}").format(feed.bozo_exception))
 				return []
 			# Log warning but continue processing
 			frappe.log_error(
 				message=f"RSS feed warning: {feed.bozo_exception}",
-				title=_("Feed Warning: {0}").format(self.feed_source.source_name)
+				title=_("Feed Warning: {0}").format(self.feed_source.source_name),
 			)
 
 		updates = []
@@ -108,7 +105,7 @@ class RSSConnector(BaseConnector):
 			"full_text": full_text,
 			"original_url": item.get("link", ""),
 			"document_type": doc_type,
-			"regulatory_body": self.feed_source.regulatory_body
+			"regulatory_body": self.feed_source.regulatory_body,
 		}
 
 	def _extract_date(self, item):
@@ -122,7 +119,7 @@ class RSSConnector(BaseConnector):
 			date: Publication date or None
 		"""
 		# Try published_parsed first
-		if hasattr(item, 'published_parsed') and item.published_parsed:
+		if hasattr(item, "published_parsed") and item.published_parsed:
 			try:
 				return getdate(
 					f"{item.published_parsed.tm_year}-"
@@ -133,7 +130,7 @@ class RSSConnector(BaseConnector):
 				pass
 
 		# Try updated_parsed
-		if hasattr(item, 'updated_parsed') and item.updated_parsed:
+		if hasattr(item, "updated_parsed") and item.updated_parsed:
 			try:
 				return getdate(
 					f"{item.updated_parsed.tm_year}-"
@@ -144,11 +141,12 @@ class RSSConnector(BaseConnector):
 				pass
 
 		# Try parsing date strings
-		for date_field in ['published', 'updated', 'date']:
+		for date_field in ["published", "updated", "date"]:
 			date_str = item.get(date_field)
 			if date_str:
 				try:
 					import dateparser
+
 					parsed = dateparser.parse(date_str)
 					if parsed:
 						return getdate(parsed)
@@ -233,6 +231,7 @@ class RSSConnector(BaseConnector):
 
 		try:
 			from bs4 import BeautifulSoup
+
 			soup = BeautifulSoup(html_text, "html.parser")
 			# Remove script and style elements
 			for element in soup(["script", "style"]):
@@ -241,8 +240,9 @@ class RSSConnector(BaseConnector):
 		except ImportError:
 			# Fallback: simple regex
 			import re
-			text = re.sub(r'<[^>]+>', ' ', html_text)
-			text = re.sub(r'\s+', ' ', text)
+
+			text = re.sub(r"<[^>]+>", " ", html_text)
+			text = re.sub(r"\s+", " ", text)
 			return text.strip()
 
 	def _classify_document_type(self, item):

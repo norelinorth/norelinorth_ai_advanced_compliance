@@ -30,6 +30,7 @@ class RegulatoryFeedSource(Document):
 
 		# Validate URL format
 		from urllib.parse import urlparse
+
 		try:
 			result = urlparse(self.url)
 			if not all([result.scheme, result.netloc]):
@@ -41,9 +42,11 @@ class RegulatoryFeedSource(Document):
 		"""Validate user agent for SEC EDGAR."""
 		if self.feed_type == "SEC EDGAR" and not self.user_agent:
 			frappe.throw(
-				_("User Agent is required for SEC EDGAR feeds. "
-				  "SEC requires identification in the format: "
-				  "CompanyName/Version (contact@email.com)")
+				_(
+					"User Agent is required for SEC EDGAR feeds. "
+					"SEC requires identification in the format: "
+					"CompanyName/Version (contact@email.com)"
+				)
 			)
 
 	def sync_now(self):
@@ -53,9 +56,7 @@ class RegulatoryFeedSource(Document):
 		Returns:
 			dict: Sync results with count of new updates
 		"""
-		from advanced_compliance.advanced_compliance.regulatory_feeds.connectors import (
-			get_connector
-		)
+		from advanced_compliance.advanced_compliance.regulatory_feeds.connectors import get_connector
 
 		if not self.enabled:
 			frappe.throw(_("Cannot sync disabled feed source"))
@@ -71,7 +72,7 @@ class RegulatoryFeedSource(Document):
 			return {
 				"success": True,
 				"updates_count": count,
-				"message": _("{0} new updates synced").format(count)
+				"message": _("{0} new updates synced").format(count),
 			}
 		except Exception as e:
 			self.db_set("last_sync", now_datetime())
@@ -79,8 +80,7 @@ class RegulatoryFeedSource(Document):
 			self.db_set("last_error", str(e)[:500])
 
 			frappe.log_error(
-				message=frappe.get_traceback(),
-				title=_("Feed Sync Error: {0}").format(self.source_name)
+				message=frappe.get_traceback(), title=_("Feed Sync Error: {0}").format(self.source_name)
 			)
 
 			frappe.throw(_("Sync failed: {0}").format(str(e)))
@@ -92,7 +92,4 @@ class RegulatoryFeedSource(Document):
 		Returns:
 			int: Number of Regulatory Update documents from this source
 		"""
-		return frappe.db.count(
-			"Regulatory Update",
-			filters={"source": self.name}
-		)
+		return frappe.db.count("Regulatory Update", filters={"source": self.name})

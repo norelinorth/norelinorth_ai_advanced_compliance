@@ -27,10 +27,7 @@ class RegulatoryUpdate(Document):
 	def calculate_days_until_effective(self):
 		"""Calculate days until effective date."""
 		if self.effective_date:
-			self.days_until_effective = date_diff(
-				getdate(self.effective_date),
-				getdate(nowdate())
-			)
+			self.days_until_effective = date_diff(getdate(self.effective_date), getdate(nowdate()))
 		else:
 			self.days_until_effective = None
 
@@ -44,7 +41,7 @@ class RegulatoryUpdate(Document):
 			return
 
 		from advanced_compliance.advanced_compliance.regulatory_feeds.parsers.document_parser import (
-			DocumentParser
+			DocumentParser,
 		)
 
 		parser = DocumentParser(self.full_text)
@@ -88,15 +85,11 @@ class RegulatoryUpdate(Document):
 			list: Names of created impact assessments
 		"""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.mapping.impact_mapper import (
-			ImpactMapper
+			ImpactMapper,
 		)
 
 		# Get all changes for this update
-		changes = frappe.get_all(
-			"Regulatory Change",
-			filters={"regulatory_update": self.name},
-			pluck="name"
-		)
+		changes = frappe.get_all("Regulatory Change", filters={"regulatory_update": self.name}, pluck="name")
 
 		all_assessments = []
 
@@ -105,7 +98,7 @@ class RegulatoryUpdate(Document):
 			if not frappe.db.exists("Regulatory Change", change_name):
 				frappe.log_error(
 					message=f"Regulatory Change {change_name} does not exist for update {self.name}",
-					title="Impact Analysis Skipped"
+					title="Impact Analysis Skipped",
 				)
 				continue
 
@@ -130,7 +123,7 @@ class RegulatoryUpdate(Document):
 		assessments = frappe.get_all(
 			"Regulatory Impact Assessment",
 			filters={"regulatory_update": self.name},
-			fields=["control_activity"]
+			fields=["control_activity"],
 		)
 
 		control_names = list(set([a.control_activity for a in assessments]))
@@ -138,5 +131,5 @@ class RegulatoryUpdate(Document):
 		return frappe.get_all(
 			"Control Activity",
 			filters={"name": ["in", control_names]},
-			fields=["name", "control_name", "control_owner", "status"]
+			fields=["name", "control_name", "control_owner", "status"],
 		)

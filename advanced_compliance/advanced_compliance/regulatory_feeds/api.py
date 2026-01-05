@@ -27,11 +27,7 @@ def sync_feed(feed_source):
 
 	# Validate feed source exists
 	if not frappe.db.exists("Regulatory Feed Source", feed_source):
-		frappe.throw(
-			_("Regulatory Feed Source {0} does not exist").format(
-				frappe.bold(feed_source)
-			)
-		)
+		frappe.throw(_("Regulatory Feed Source {0} does not exist").format(frappe.bold(feed_source)))
 
 	from .connectors import get_connector
 
@@ -40,11 +36,7 @@ def sync_feed(feed_source):
 
 	count = connector.sync()
 
-	return {
-		"success": True,
-		"updates_count": count,
-		"message": _("{0} new updates synced").format(count)
-	}
+	return {"success": True, "updates_count": count, "message": _("{0} new updates synced").format(count)}
 
 
 @frappe.whitelist()
@@ -61,16 +53,9 @@ def sync_all_feeds():
 	from .scheduler import sync_all_feeds as do_sync
 
 	# Run in background for large syncs
-	frappe.enqueue(
-		do_sync,
-		queue="long",
-		timeout=600
-	)
+	frappe.enqueue(do_sync, queue="long", timeout=600)
 
-	return {
-		"success": True,
-		"message": _("Feed sync started in background")
-	}
+	return {"success": True, "message": _("Feed sync started in background")}
 
 
 @frappe.whitelist()
@@ -91,9 +76,7 @@ def analyze_update_impact(regulatory_update):
 
 	# Get all changes for this update
 	changes = frappe.get_all(
-		"Regulatory Change",
-		filters={"regulatory_update": regulatory_update},
-		pluck="name"
+		"Regulatory Change", filters={"regulatory_update": regulatory_update}, pluck="name"
 	)
 
 	all_assessments = []
@@ -108,11 +91,7 @@ def analyze_update_impact(regulatory_update):
 		assessments = mapper.create_impact_assessments()
 		all_assessments.extend(assessments)
 
-	return {
-		"success": True,
-		"assessments_created": len(all_assessments),
-		"assessment_names": all_assessments
-	}
+	return {"success": True, "assessments_created": len(all_assessments), "assessment_names": all_assessments}
 
 
 @frappe.whitelist()
@@ -131,11 +110,7 @@ def extract_update_metadata(regulatory_update):
 
 	# Validate update exists
 	if not frappe.db.exists("Regulatory Update", regulatory_update):
-		frappe.throw(
-			_("Regulatory Update {0} does not exist").format(
-				frappe.bold(regulatory_update)
-			)
-		)
+		frappe.throw(_("Regulatory Update {0} does not exist").format(frappe.bold(regulatory_update)))
 
 	update_doc = frappe.get_doc("Regulatory Update", regulatory_update)
 	update_doc.extract_metadata()
@@ -145,7 +120,7 @@ def extract_update_metadata(regulatory_update):
 		"citations": update_doc.citations,
 		"keywords": update_doc.extracted_keywords,
 		"entities": update_doc.extracted_entities,
-		"effective_date": update_doc.effective_date
+		"effective_date": update_doc.effective_date,
 	}
 
 
@@ -163,7 +138,7 @@ def get_regulatory_timeline(days=90):
 	if not frappe.has_permission("Regulatory Update", "read"):
 		frappe.throw(_("Insufficient permissions to view regulatory timeline"))
 
-	from frappe.utils import nowdate, add_days, cint
+	from frappe.utils import add_days, cint, nowdate
 
 	future_date = add_days(nowdate(), cint(days))
 
@@ -171,14 +146,18 @@ def get_regulatory_timeline(days=90):
 		"Regulatory Update",
 		filters={
 			"effective_date": ["between", [nowdate(), future_date]],
-			"status": ["not in", ["Implemented", "Not Applicable"]]
+			"status": ["not in", ["Implemented", "Not Applicable"]],
 		},
 		fields=[
-			"name", "title", "regulatory_body",
-			"effective_date", "document_type", "status",
-			"days_until_effective"
+			"name",
+			"title",
+			"regulatory_body",
+			"effective_date",
+			"document_type",
+			"status",
+			"days_until_effective",
 		],
-		order_by="effective_date asc"
+		order_by="effective_date asc",
 	)
 
 	return updates
@@ -203,24 +182,24 @@ def get_pending_actions(user=None):
 
 	assessments = frappe.get_all(
 		"Regulatory Impact Assessment",
-		filters={
-			"assigned_to": user,
-			"status": ["in", ["Pending", "In Progress"]]
-		},
+		filters={"assigned_to": user, "status": ["in", ["Pending", "In Progress"]]},
 		fields=[
-			"name", "control_activity", "impact_type",
-			"due_date", "status", "gap_identified",
-			"priority", "confidence_score"
+			"name",
+			"control_activity",
+			"impact_type",
+			"due_date",
+			"status",
+			"gap_identified",
+			"priority",
+			"confidence_score",
 		],
-		order_by="priority desc, due_date asc"
+		order_by="priority desc, due_date asc",
 	)
 
 	# Enrich with control names
 	for assessment in assessments:
 		assessment["control_name"] = frappe.db.get_value(
-			"Control Activity",
-			assessment["control_activity"],
-			"control_name"
+			"Control Activity", assessment["control_activity"], "control_name"
 		)
 
 	return assessments
@@ -240,18 +219,20 @@ def get_feed_status():
 	feeds = frappe.get_all(
 		"Regulatory Feed Source",
 		fields=[
-			"name", "source_name", "feed_type", "enabled",
-			"last_sync", "last_sync_status", "sync_frequency",
-			"regulatory_body"
-		]
+			"name",
+			"source_name",
+			"feed_type",
+			"enabled",
+			"last_sync",
+			"last_sync_status",
+			"sync_frequency",
+			"regulatory_body",
+		],
 	)
 
 	for feed in feeds:
 		# Get update count
-		feed["update_count"] = frappe.db.count(
-			"Regulatory Update",
-			filters={"source": feed["name"]}
-		)
+		feed["update_count"] = frappe.db.count("Regulatory Update", filters={"source": feed["name"]})
 
 		# Calculate sync status
 		if not feed["last_sync"]:
@@ -261,12 +242,9 @@ def get_feed_status():
 			feed["health"] = "danger"
 			feed["health_message"] = _("Last sync failed")
 		else:
-			from frappe.utils import time_diff_in_hours, now_datetime
+			from frappe.utils import now_datetime, time_diff_in_hours
 
-			hours_since = time_diff_in_hours(
-				now_datetime(),
-				feed["last_sync"]
-			)
+			hours_since = time_diff_in_hours(now_datetime(), feed["last_sync"])
 
 			if feed["sync_frequency"] == "Hourly" and hours_since > 2:
 				feed["health"] = "warning"
@@ -292,19 +270,16 @@ def get_compliance_dashboard_data():
 	if not frappe.has_permission("Regulatory Update", "read"):
 		frappe.throw(_("Insufficient permissions to view compliance dashboard"))
 
-	from frappe.utils import nowdate, add_days
+	from frappe.utils import add_days, nowdate
 
 	# Count by status
 	updates_by_status = frappe.get_all(
-		"Regulatory Update",
-		fields=["status", "count(*) as count"],
-		group_by="status"
+		"Regulatory Update", fields=["status", "count(*) as count"], group_by="status"
 	)
 
 	# Pending assessments
 	pending_assessments = frappe.db.count(
-		"Regulatory Impact Assessment",
-		filters={"status": ["in", ["Pending", "In Progress"]]}
+		"Regulatory Impact Assessment", filters={"status": ["in", ["Pending", "In Progress"]]}
 	)
 
 	# Upcoming deadlines (30 days)
@@ -312,40 +287,30 @@ def get_compliance_dashboard_data():
 		"Regulatory Update",
 		filters={
 			"effective_date": ["between", [nowdate(), add_days(nowdate(), 30)]],
-			"status": ["not in", ["Implemented", "Not Applicable"]]
-		}
+			"status": ["not in", ["Implemented", "Not Applicable"]],
+		},
 	)
 
 	# Recent updates (7 days)
 	recent_updates = frappe.get_all(
 		"Regulatory Update",
-		filters={
-			"creation": [">=", add_days(nowdate(), -7)]
-		},
+		filters={"creation": [">=", add_days(nowdate(), -7)]},
 		fields=["name", "title", "regulatory_body", "document_type", "creation"],
 		order_by="creation desc",
-		limit=5
+		limit=5,
 	)
 
 	# Changes by severity
 	changes_by_severity = frappe.get_all(
-		"Regulatory Change",
-		fields=["severity", "count(*) as count"],
-		group_by="severity"
+		"Regulatory Change", fields=["severity", "count(*) as count"], group_by="severity"
 	)
 
 	return {
-		"updates_by_status": {
-			item["status"]: item["count"]
-			for item in updates_by_status
-		},
+		"updates_by_status": {item["status"]: item["count"] for item in updates_by_status},
 		"pending_assessments": pending_assessments,
 		"upcoming_deadlines": upcoming_deadline_count,
 		"recent_updates": recent_updates,
-		"changes_by_severity": {
-			item["severity"]: item["count"]
-			for item in changes_by_severity
-		}
+		"changes_by_severity": {item["severity"]: item["count"] for item in changes_by_severity},
 	}
 
 
@@ -368,18 +333,13 @@ def mark_assessment_complete(assessment_name, action_taken, notes=None):
 	# Validate assessment exists
 	if not frappe.db.exists("Regulatory Impact Assessment", assessment_name):
 		frappe.throw(
-			_("Regulatory Impact Assessment {0} does not exist").format(
-				frappe.bold(assessment_name)
-			)
+			_("Regulatory Impact Assessment {0} does not exist").format(frappe.bold(assessment_name))
 		)
 
 	assessment = frappe.get_doc("Regulatory Impact Assessment", assessment_name)
 	assessment.mark_complete(action_taken, notes)
 
-	return {
-		"success": True,
-		"message": _("Assessment marked complete")
-	}
+	return {"success": True, "message": _("Assessment marked complete")}
 
 
 @frappe.whitelist()
@@ -400,15 +360,10 @@ def mark_assessment_no_action(assessment_name, reason):
 	# Validate assessment exists
 	if not frappe.db.exists("Regulatory Impact Assessment", assessment_name):
 		frappe.throw(
-			_("Regulatory Impact Assessment {0} does not exist").format(
-				frappe.bold(assessment_name)
-			)
+			_("Regulatory Impact Assessment {0} does not exist").format(frappe.bold(assessment_name))
 		)
 
 	assessment = frappe.get_doc("Regulatory Impact Assessment", assessment_name)
 	assessment.mark_no_action(reason)
 
-	return {
-		"success": True,
-		"message": _("Assessment marked as no action needed")
-	}
+	return {"success": True, "message": _("Assessment marked as no action needed")}

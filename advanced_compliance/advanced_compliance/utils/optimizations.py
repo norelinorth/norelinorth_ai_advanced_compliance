@@ -30,11 +30,11 @@ def get_controls_with_stats(filters=None, limit=100, offset=0):
 
 	if filters:
 		if filters.get("status"):
-			conditions += f" AND ca.status = %(status)s"
+			conditions += " AND ca.status = %(status)s"
 		if filters.get("control_owner"):
-			conditions += f" AND ca.control_owner = %(control_owner)s"
+			conditions += " AND ca.control_owner = %(control_owner)s"
 		if filters.get("is_key_control"):
-			conditions += f" AND ca.is_key_control = 1"
+			conditions += " AND ca.is_key_control = 1"
 
 	query = f"""
 		SELECT
@@ -60,11 +60,7 @@ def get_controls_with_stats(filters=None, limit=100, offset=0):
 		LIMIT %(limit)s OFFSET %(offset)s
 	"""
 
-	params = {
-		"limit": cint(limit),
-		"offset": cint(offset),
-		**(filters or {})
-	}
+	params = {"limit": cint(limit), "offset": cint(offset), **(filters or {})}
 
 	return frappe.db.sql(query, params, as_dict=True)
 
@@ -78,7 +74,8 @@ def get_risk_heatmap_data():
 	Returns:
 		list: Risk counts by impact/likelihood
 	"""
-	return frappe.db.sql("""
+	return frappe.db.sql(
+		"""
 		SELECT
 			inherent_impact,
 			inherent_likelihood,
@@ -87,7 +84,9 @@ def get_risk_heatmap_data():
 		FROM `tabRisk Register Entry`
 		WHERE status = 'Open'
 		GROUP BY inherent_impact, inherent_likelihood
-	""", as_dict=True)
+	""",
+		as_dict=True,
+	)
 
 
 def get_compliance_summary():
@@ -104,7 +103,7 @@ def get_compliance_summary():
 		"Deficiency": frappe.db.table_exists("tabDeficiency"),
 		"Test Execution": frappe.db.table_exists("tabTest Execution"),
 		"Regulatory Update": frappe.db.table_exists("tabRegulatory Update"),
-		"Control Evidence": frappe.db.table_exists("tabControl Evidence")
+		"Control Evidence": frappe.db.table_exists("tabControl Evidence"),
 	}
 
 	result = {
@@ -114,43 +113,27 @@ def get_compliance_summary():
 		"open_deficiencies": 0,
 		"pending_tests": 0,
 		"new_updates": 0,
-		"total_evidence": 0
+		"total_evidence": 0,
 	}
 
 	if tables_exist["Control Activity"]:
-		result["active_controls"] = frappe.db.count(
-			"Control Activity",
-			filters={"status": "Active"}
-		)
-		result["key_controls"] = frappe.db.count(
-			"Control Activity",
-			filters={"is_key_control": 1}
-		)
+		result["active_controls"] = frappe.db.count("Control Activity", filters={"status": "Active"})
+		result["key_controls"] = frappe.db.count("Control Activity", filters={"is_key_control": 1})
 
 	if tables_exist["Risk Register Entry"]:
-		result["active_risks"] = frappe.db.count(
-			"Risk Register Entry",
-			filters={"status": "Open"}
-		)
+		result["active_risks"] = frappe.db.count("Risk Register Entry", filters={"status": "Open"})
 
 	if tables_exist["Deficiency"]:
 		result["open_deficiencies"] = frappe.db.count(
-			"Deficiency",
-			filters={"status": ["not in", ["Closed", "Cancelled"]]}
+			"Deficiency", filters={"status": ["not in", ["Closed", "Cancelled"]]}
 		)
 
 	if tables_exist["Test Execution"]:
 		# Test Execution is submittable - docstatus 0 = Draft/Pending
-		result["pending_tests"] = frappe.db.count(
-			"Test Execution",
-			filters={"docstatus": 0}
-		)
+		result["pending_tests"] = frappe.db.count("Test Execution", filters={"docstatus": 0})
 
 	if tables_exist["Regulatory Update"]:
-		result["new_updates"] = frappe.db.count(
-			"Regulatory Update",
-			filters={"status": "New"}
-		)
+		result["new_updates"] = frappe.db.count("Regulatory Update", filters={"status": "New"})
 
 	if tables_exist["Control Evidence"]:
 		result["total_evidence"] = frappe.db.count("Control Evidence")
@@ -168,7 +151,8 @@ def get_control_effectiveness_scores(limit=20):
 	Returns:
 		list: Controls with effectiveness metrics
 	"""
-	return frappe.db.sql("""
+	return frappe.db.sql(
+		"""
 		SELECT
 			ca.name,
 			ca.control_name,
@@ -188,7 +172,10 @@ def get_control_effectiveness_scores(limit=20):
 		HAVING total_tests > 0
 		ORDER BY effectiveness_score ASC, ca.is_key_control DESC
 		LIMIT %(limit)s
-	""", {"limit": cint(limit)}, as_dict=True)
+	""",
+		{"limit": cint(limit)},
+		as_dict=True,
+	)
 
 
 def get_overdue_tests(days_overdue=30):
@@ -201,7 +188,8 @@ def get_overdue_tests(days_overdue=30):
 	Returns:
 		list: Controls needing testing
 	"""
-	return frappe.db.sql("""
+	return frappe.db.sql(
+		"""
 		SELECT
 			ca.name,
 			ca.control_name,
@@ -217,7 +205,10 @@ def get_overdue_tests(days_overdue=30):
 		GROUP BY ca.name
 		HAVING days_since_test > %(days_overdue)s OR last_test_date IS NULL
 		ORDER BY days_since_test DESC
-	""", {"days_overdue": cint(days_overdue)}, as_dict=True)
+	""",
+		{"days_overdue": cint(days_overdue)},
+		as_dict=True,
+	)
 
 
 def get_deficiency_aging():
@@ -227,7 +218,8 @@ def get_deficiency_aging():
 	Returns:
 		dict: Deficiency counts by age bucket
 	"""
-	return frappe.db.sql("""
+	return frappe.db.sql(
+		"""
 		SELECT
 			CASE
 				WHEN DATEDIFF(CURDATE(), creation) <= 30 THEN '0-30 days'
@@ -247,4 +239,6 @@ def get_deficiency_aging():
 				WHEN '61-90 days' THEN 3
 				ELSE 4
 			END
-	""", as_dict=True)
+	""",
+		as_dict=True,
+	)

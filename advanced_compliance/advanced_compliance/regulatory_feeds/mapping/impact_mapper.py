@@ -31,19 +31,13 @@ class ImpactMapper:
 			regulatory_change: Regulatory Change document or name
 		"""
 		if isinstance(regulatory_change, str):
-			regulatory_change = frappe.get_doc(
-				"Regulatory Change",
-				regulatory_change
-			)
+			regulatory_change = frappe.get_doc("Regulatory Change", regulatory_change)
 
 		self.change = regulatory_change
 		self.update = None
 
 		if regulatory_change.regulatory_update:
-			self.update = frappe.get_doc(
-				"Regulatory Update",
-				regulatory_change.regulatory_update
-			)
+			self.update = frappe.get_doc("Regulatory Update", regulatory_change.regulatory_update)
 
 	def find_affected_controls(self):
 		"""
@@ -96,10 +90,7 @@ class ImpactMapper:
 		if not citations:
 			# Try from stored citations
 			if self.change.affected_citations:
-				citations = [
-					c.strip()
-					for c in self.change.affected_citations.split(",")
-				]
+				citations = [c.strip() for c in self.change.affected_citations.split(",")]
 
 		if not citations:
 			return matches
@@ -107,32 +98,36 @@ class ImpactMapper:
 		# Get all controls with their descriptions
 		controls = frappe.get_all(
 			"Control Activity",
-			fields=[
-				"name", "control_name", "description",
-				"evidence_requirements", "control_procedure"
-			],
-			filters={"status": ["!=", "Deprecated"]}
+			fields=["name", "control_name", "description", "evidence_requirements", "control_procedure"],
+			filters={"status": ["!=", "Deprecated"]},
 		)
 
 		for control in controls:
 			# Build searchable text
-			control_text = " ".join(filter(None, [
-				control.control_name or "",
-				control.description or "",
-				control.evidence_requirements or "",
-				control.control_procedure or ""
-			])).upper()
+			control_text = " ".join(
+				filter(
+					None,
+					[
+						control.control_name or "",
+						control.description or "",
+						control.evidence_requirements or "",
+						control.control_procedure or "",
+					],
+				)
+			).upper()
 
 			# Check each citation
 			for citation in citations:
 				citation_upper = citation.upper()
 				if citation_upper in control_text:
-					matches.append({
-						"control": control.name,
-						"confidence": 90.0,
-						"method": "citation",
-						"matched_on": citation
-					})
+					matches.append(
+						{
+							"control": control.name,
+							"confidence": 90.0,
+							"method": "citation",
+							"matched_on": citation,
+						}
+					)
 					break  # One match per control
 
 		return matches
@@ -157,6 +152,7 @@ class ImpactMapper:
 
 		# Extract keywords from change
 		from ..parsers.document_parser import DocumentParser
+
 		parser = DocumentParser(change_text)
 		change_keywords = set(parser.extract_keywords(top_n=20))
 
@@ -166,8 +162,24 @@ class ImpactMapper:
 
 		# Filter out common words
 		stop_words = {
-			'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at',
-			'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was'
+			"the",
+			"a",
+			"an",
+			"and",
+			"or",
+			"but",
+			"in",
+			"on",
+			"at",
+			"to",
+			"for",
+			"of",
+			"with",
+			"by",
+			"from",
+			"as",
+			"is",
+			"was",
 		}
 		change_keywords = change_keywords - stop_words
 
@@ -177,21 +189,23 @@ class ImpactMapper:
 		# Get all controls
 		controls = frappe.get_all(
 			"Control Activity",
-			fields=[
-				"name", "control_name", "description",
-				"evidence_requirements", "control_procedure"
-			],
-			filters={"status": ["!=", "Deprecated"]}
+			fields=["name", "control_name", "description", "evidence_requirements", "control_procedure"],
+			filters={"status": ["!=", "Deprecated"]},
 		)
 
 		for control in controls:
 			# Build control text
-			control_text = " ".join(filter(None, [
-				control.control_name or "",
-				control.description or "",
-				control.evidence_requirements or "",
-				control.control_procedure or ""
-			])).lower()
+			control_text = " ".join(
+				filter(
+					None,
+					[
+						control.control_name or "",
+						control.description or "",
+						control.evidence_requirements or "",
+						control.control_procedure or "",
+					],
+				)
+			).lower()
 
 			control_words = set(control_text.split()) - stop_words
 
@@ -211,12 +225,14 @@ class ImpactMapper:
 
 					matched_keywords = list(intersection)[:5]
 
-					matches.append({
-						"control": control.name,
-						"confidence": confidence,
-						"method": "keyword",
-						"matched_on": ", ".join(matched_keywords)
-					})
+					matches.append(
+						{
+							"control": control.name,
+							"confidence": confidence,
+							"method": "keyword",
+							"matched_on": ", ".join(matched_keywords),
+						}
+					)
 
 		return matches
 
@@ -236,7 +252,7 @@ class ImpactMapper:
 			from sentence_transformers import SentenceTransformer
 			from sklearn.metrics.pairwise import cosine_similarity
 
-			model = SentenceTransformer('all-MiniLM-L6-v2')
+			model = SentenceTransformer("all-MiniLM-L6-v2")
 
 			# Get change embedding
 			change_text = f"{self.change.summary_of_change or ''} {self.change.new_text or ''}"
@@ -249,48 +265,46 @@ class ImpactMapper:
 			# Get all controls
 			controls = frappe.get_all(
 				"Control Activity",
-				fields=[
-					"name", "control_name", "description",
-					"evidence_requirements"
-				],
-				filters={"status": ["!=", "Deprecated"]}
+				fields=["name", "control_name", "description", "evidence_requirements"],
+				filters={"status": ["!=", "Deprecated"]},
 			)
 
 			for control in controls:
-				control_text = " ".join(filter(None, [
-					control.control_name or "",
-					control.description or "",
-					control.evidence_requirements or ""
-				]))
+				control_text = " ".join(
+					filter(
+						None,
+						[
+							control.control_name or "",
+							control.description or "",
+							control.evidence_requirements or "",
+						],
+					)
+				)
 
 				if not control_text.strip():
 					continue
 
 				control_embedding = model.encode([control_text])[0]
 
-				similarity = cosine_similarity(
-					[change_embedding],
-					[control_embedding]
-				)[0][0]
+				similarity = cosine_similarity([change_embedding], [control_embedding])[0][0]
 
 				# Only include if similarity above threshold
 				if similarity > 0.3:  # 30% minimum semantic similarity
 					confidence = flt(similarity * 100, 2)
 
-					matches.append({
-						"control": control.name,
-						"confidence": confidence,
-						"method": "semantic",
-						"matched_on": f"Semantic similarity: {confidence:.1f}%"
-					})
+					matches.append(
+						{
+							"control": control.name,
+							"confidence": confidence,
+							"method": "semantic",
+							"matched_on": f"Semantic similarity: {confidence:.1f}%",
+						}
+					)
 
 		except ImportError:
 			pass
 		except Exception as e:
-			frappe.log_error(
-				message=str(e),
-				title=_("Semantic Matching Error")
-			)
+			frappe.log_error(message=str(e), title=_("Semantic Matching Error"))
 
 		return matches
 
@@ -331,18 +345,15 @@ class ImpactMapper:
 				# If same confidence, prefer citation > keyword > semantic
 				elif match["confidence"] == merged[control]["confidence"]:
 					method_priority = {"citation": 3, "keyword": 2, "semantic": 1}
-					if method_priority.get(match["method"], 0) > \
-					   method_priority.get(merged[control]["method"], 0):
+					if method_priority.get(match["method"], 0) > method_priority.get(
+						merged[control]["method"], 0
+					):
 						merged[control] = match
 			else:
 				merged[control] = match
 
 		# Sort by confidence descending
-		sorted_matches = sorted(
-			merged.values(),
-			key=lambda x: x["confidence"],
-			reverse=True
-		)
+		sorted_matches = sorted(merged.values(), key=lambda x: x["confidence"], reverse=True)
 
 		return sorted_matches
 
@@ -366,10 +377,7 @@ class ImpactMapper:
 			# Check if assessment already exists
 			exists = frappe.db.exists(
 				"Regulatory Impact Assessment",
-				{
-					"regulatory_change": self.change.name,
-					"control_activity": match["control"]
-				}
+				{"regulatory_change": self.change.name, "control_activity": match["control"]},
 			)
 
 			if exists:
@@ -388,26 +396,28 @@ class ImpactMapper:
 				matched_keywords = match["matched_on"]
 
 			try:
-				doc = frappe.get_doc({
-					"doctype": "Regulatory Impact Assessment",
-					"regulatory_change": self.change.name,
-					"regulatory_update": self.change.regulatory_update,
-					"control_activity": match["control"],
-					"mapping_method": self._map_method_name(match["method"]),
-					"confidence_score": match["confidence"],
-					"matched_citations": matched_citations,
-					"matched_keywords": matched_keywords,
-					"impact_type": impact_type,
-					"gap_identified": impact_type == "New Control Needed",
-					"status": "Pending"
-				})
+				doc = frappe.get_doc(
+					{
+						"doctype": "Regulatory Impact Assessment",
+						"regulatory_change": self.change.name,
+						"regulatory_update": self.change.regulatory_update,
+						"control_activity": match["control"],
+						"mapping_method": self._map_method_name(match["method"]),
+						"confidence_score": match["confidence"],
+						"matched_citations": matched_citations,
+						"matched_keywords": matched_keywords,
+						"impact_type": impact_type,
+						"gap_identified": impact_type == "New Control Needed",
+						"status": "Pending",
+					}
+				)
 				doc.insert(ignore_permissions=True)
 				created.append(doc.name)
 
 			except Exception as e:
 				frappe.log_error(
 					message=f"Error creating impact assessment: {str(e)}",
-					title=_("Impact Assessment Creation Error")
+					title=_("Impact Assessment Creation Error"),
 				)
 
 		frappe.db.commit()
@@ -447,9 +457,5 @@ class ImpactMapper:
 		Returns:
 			str: User-friendly method name
 		"""
-		mapping = {
-			"citation": "Automatic",
-			"keyword": "Automatic",
-			"semantic": "AI Suggested"
-		}
+		mapping = {"citation": "Automatic", "keyword": "Automatic", "semantic": "AI Suggested"}
 		return mapping.get(method, "Automatic")

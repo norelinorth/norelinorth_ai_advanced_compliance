@@ -32,21 +32,23 @@ def get_connector(feed_source):
 
 	if feed_type == "RSS":
 		from .rss_connector import RSSConnector
+
 		return RSSConnector(feed_source)
 
 	elif feed_type == "SEC EDGAR":
 		from .sec_edgar import SECEdgarConnector
+
 		return SECEdgarConnector(feed_source)
 
 	elif feed_type == "PCAOB":
 		from .pcaob import PCAOBConnector
+
 		return PCAOBConnector(feed_source)
 
 	elif feed_type == "Custom API":
 		from .custom_api import CustomAPIConnector
+
 		return CustomAPIConnector(feed_source)
 
 	else:
-		frappe.throw(
-			_("Unsupported feed type: {0}").format(feed_type)
-		)
+		frappe.throw(_("Unsupported feed type: {0}").format(feed_type))

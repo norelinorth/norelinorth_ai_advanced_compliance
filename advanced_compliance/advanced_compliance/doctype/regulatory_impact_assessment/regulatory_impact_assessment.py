@@ -29,9 +29,7 @@ class RegulatoryImpactAssessment(Document):
 		"""Set regulatory update from regulatory change if not set."""
 		if not self.regulatory_update and self.regulatory_change:
 			self.regulatory_update = frappe.db.get_value(
-				"Regulatory Change",
-				self.regulatory_change,
-				"regulatory_update"
+				"Regulatory Change", self.regulatory_change, "regulatory_update"
 			)
 
 	def auto_set_priority(self):
@@ -39,18 +37,14 @@ class RegulatoryImpactAssessment(Document):
 		Auto-set priority based on change severity and gap status.
 		"""
 		if not self.priority and self.regulatory_change:
-			severity = frappe.db.get_value(
-				"Regulatory Change",
-				self.regulatory_change,
-				"severity"
-			)
+			severity = frappe.db.get_value("Regulatory Change", self.regulatory_change, "severity")
 
 			# Map severity to priority
 			severity_priority_map = {
 				"Critical": "Critical",
 				"Major": "High",
 				"Moderate": "Medium",
-				"Minor": "Low"
+				"Minor": "Low",
 			}
 
 			self.priority = severity_priority_map.get(severity, "Medium")
@@ -69,11 +63,7 @@ class RegulatoryImpactAssessment(Document):
 		if not self.control_activity:
 			frappe.throw(_("Control Activity is required"))
 
-		control_owner = frappe.db.get_value(
-			"Control Activity",
-			self.control_activity,
-			"control_owner"
-		)
+		control_owner = frappe.db.get_value("Control Activity", self.control_activity, "control_owner")
 
 		if control_owner:
 			self.assigned_to = control_owner
@@ -93,32 +83,30 @@ class RegulatoryImpactAssessment(Document):
 		"""
 		change_summary = ""
 		if self.regulatory_change:
-			change_summary = frappe.db.get_value(
-				"Regulatory Change",
-				self.regulatory_change,
-				"summary_of_change"
-			) or ""
+			change_summary = (
+				frappe.db.get_value("Regulatory Change", self.regulatory_change, "summary_of_change") or ""
+			)
 
 		control_name = ""
 		if self.control_activity:
-			control_name = frappe.db.get_value(
-				"Control Activity",
-				self.control_activity,
-				"control_name"
-			) or self.control_activity
+			control_name = (
+				frappe.db.get_value("Control Activity", self.control_activity, "control_name")
+				or self.control_activity
+			)
 
-		frappe.get_doc({
-			"doctype": "ToDo",
-			"allocated_to": user,
-			"reference_type": "Regulatory Impact Assessment",
-			"reference_name": self.name,
-			"description": _(
-				"Review regulatory impact assessment for control '{0}'. "
-				"Change: {1}"
-			).format(control_name, change_summary[:200]),
-			"priority": self.priority or "Medium",
-			"date": self.due_date
-		}).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"allocated_to": user,
+				"reference_type": "Regulatory Impact Assessment",
+				"reference_name": self.name,
+				"description": _(
+					"Review regulatory impact assessment for control '{0}'. " "Change: {1}"
+				).format(control_name, change_summary[:200]),
+				"priority": self.priority or "Medium",
+				"date": self.due_date,
+			}
+		).insert(ignore_permissions=True)
 
 	def mark_complete(self, action_taken, notes=None):
 		"""
@@ -143,13 +131,9 @@ class RegulatoryImpactAssessment(Document):
 		# Close any related ToDos
 		frappe.db.set_value(
 			"ToDo",
-			{
-				"reference_type": "Regulatory Impact Assessment",
-				"reference_name": self.name,
-				"status": "Open"
-			},
+			{"reference_type": "Regulatory Impact Assessment", "reference_name": self.name, "status": "Open"},
 			"status",
-			"Closed"
+			"Closed",
 		)
 
 		return True
@@ -186,13 +170,7 @@ class RegulatoryImpactAssessment(Document):
 
 		return frappe.get_all(
 			"Regulatory Impact Assessment",
-			filters={
-				"assigned_to": user,
-				"status": ["in", ["Pending", "In Progress"]]
-			},
-			fields=[
-				"name", "control_activity", "impact_type",
-				"priority", "due_date", "confidence_score"
-			],
-			order_by="due_date asc"
+			filters={"assigned_to": user, "status": ["in", ["Pending", "In Progress"]]},
+			fields=["name", "control_activity", "impact_type", "priority", "due_date", "confidence_score"],
+			order_by="due_date asc",
 		)

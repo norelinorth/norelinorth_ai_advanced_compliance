@@ -8,6 +8,7 @@ Provides Redis-based caching for expensive operations.
 """
 
 import json
+
 import frappe
 from frappe import _
 
@@ -63,7 +64,7 @@ def invalidate_cache(pattern):
 		# Log cache errors but don't fail the operation
 		frappe.log_error(
 			message=f"Cache invalidation error for pattern '{pattern}': {str(e)}",
-			title="Compliance Cache Error"
+			title="Compliance Cache Error",
 		)
 
 

@@ -43,7 +43,7 @@ class RegulatoryChange(Document):
 
 		from advanced_compliance.advanced_compliance.regulatory_feeds.detection.change_detector import (
 			ChangeDetector,
-			SemanticChangeDetector
+			SemanticChangeDetector,
 		)
 
 		# Text similarity
@@ -56,10 +56,7 @@ class RegulatoryChange(Document):
 		# Semantic similarity (if available)
 		try:
 			semantic_detector = SemanticChangeDetector()
-			result = semantic_detector.detect_meaning_changes(
-				self.old_text,
-				self.new_text
-			)
+			result = semantic_detector.detect_meaning_changes(self.old_text, self.new_text)
 			self.semantic_similarity = flt(result["semantic_similarity"] * 100, 2)
 		except Exception:
 			# Semantic analysis not available
@@ -106,7 +103,7 @@ class RegulatoryChange(Document):
 			list: List of citation strings found
 		"""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.parsers.document_parser import (
-			DocumentParser
+			DocumentParser,
 		)
 
 		text = f"{self.old_text or ''} {self.new_text or ''}"
@@ -130,7 +127,7 @@ class RegulatoryChange(Document):
 			list: Names of created assessments
 		"""
 		from advanced_compliance.advanced_compliance.regulatory_feeds.mapping.impact_mapper import (
-			ImpactMapper
+			ImpactMapper,
 		)
 
 		mapper = ImpactMapper(self)

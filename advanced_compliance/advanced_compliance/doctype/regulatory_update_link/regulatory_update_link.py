@@ -7,4 +7,5 @@ from frappe.model.document import Document
 
 class RegulatoryUpdateLink(Document):
 	"""Child table for Regulatory Update links."""
+
 	pass
