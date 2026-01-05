@@ -98,8 +98,11 @@ def generate_demo_data():
 			doc.insert(ignore_permissions=True)
 			control_names.append(doc.name)
 			results["controls"] += 1
-		except Exception:
-			pass
+		except Exception as e:
+			# Skip if control already exists or validation fails
+			frappe.log_error(
+				message=f"Failed to create demo control: {str(e)}", title="Demo Data Generation Warning"
+			)
 
 	# Generate risks
 	risk_names = []
@@ -118,8 +121,11 @@ def generate_demo_data():
 			doc.insert(ignore_permissions=True)
 			risk_names.append(doc.name)
 			results["risks"] += 1
-		except Exception:
-			pass
+		except Exception as e:
+			# Skip if risk already exists or validation fails
+			frappe.log_error(
+				message=f"Failed to create demo risk: {str(e)}", title="Demo Data Generation Warning"
+			)
 
 	# Generate test executions (Test Execution uses 'control' field, not 'control_activity')
 	test_results = ["Effective", "Effective", "Effective", "Ineffective - Minor", "Ineffective - Significant"]
@@ -163,8 +169,12 @@ def generate_demo_data():
 					def_doc.insert(ignore_permissions=True)
 					results["deficiencies"] += 1
 
-			except Exception:
-				pass
+			except Exception as e:
+				# Skip if test execution or deficiency creation fails
+				frappe.log_error(
+					message=f"Failed to create demo test execution: {str(e)}",
+					title="Demo Data Generation Warning",
+				)
 
 	# Generate regulatory updates
 	update_titles = [
@@ -191,8 +201,12 @@ def generate_demo_data():
 			)
 			doc.insert(ignore_permissions=True)
 			results["updates"] += 1
-		except Exception:
-			pass
+		except Exception as e:
+			# Skip if regulatory update already exists
+			frappe.log_error(
+				message=f"Failed to create demo regulatory update: {str(e)}",
+				title="Demo Data Generation Warning",
+			)
 
 	frappe.db.commit()
 
@@ -239,8 +253,12 @@ def clear_demo_data():
 				try:
 					frappe.delete_doc(doctype, name, force=True)
 					results[key] += 1
-				except Exception:
-					pass
+				except Exception as e:
+					# Skip if document cannot be deleted (linked records, etc.)
+					frappe.log_error(
+						message=f"Failed to delete demo {doctype} {name}: {str(e)}",
+						title="Demo Data Cleanup Warning",
+					)
 
 	frappe.db.commit()
 

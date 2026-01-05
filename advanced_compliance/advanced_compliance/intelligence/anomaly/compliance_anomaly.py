@@ -25,6 +25,12 @@ class ComplianceAnomalyDetector:
 	- Evidence staleness: Old evidence not refreshed
 	"""
 
+	# Anomaly detection thresholds
+	MIN_TESTS_FOR_CLUSTER = 5  # Minimum tests to consider as cluster
+	BASE_THRESHOLD_MULTIPLIER = 2.0  # Multiplier for average test count
+	PASS_RATE_CHANGE_THRESHOLD = 0.3  # 30% change threshold for pass rate anomalies
+	DEFICIENCY_SPIKE_MULTIPLIER = 2.0  # Deficiency increase threshold multiplier
+
 	def __init__(self):
 		"""Initialize the anomaly detector."""
 		self.settings = self._get_settings()
@@ -112,11 +118,11 @@ class ComplianceAnomalyDetector:
 		# Calculate statistics
 		counts = [tc.test_count for tc in test_counts]
 		avg_count = sum(counts) / len(counts) if counts else 0
-		threshold = avg_count * (2.0 / self.sensitivity)  # Adjusted by sensitivity
+		threshold = avg_count * (self.BASE_THRESHOLD_MULTIPLIER / self.sensitivity)  # Adjusted by sensitivity
 
 		# Find anomalous days
 		for tc in test_counts:
-			if tc.test_count > threshold and tc.test_count > 5:
+			if tc.test_count > threshold and tc.test_count > self.MIN_TESTS_FOR_CLUSTER:
 				anomalies.append(
 					{
 						"anomaly_type": "Testing Cluster",
@@ -206,7 +212,7 @@ class ComplianceAnomalyDetector:
 
 			# Detect significant drop
 			rate_change = previous_rate - recent_rate
-			change_threshold = 0.3 / self.sensitivity  # 30% drop at default sensitivity
+			change_threshold = self.PASS_RATE_CHANGE_THRESHOLD / self.sensitivity  # Adjusted by sensitivity
 
 			if rate_change >= change_threshold:
 				control_name = frappe.db.get_value("Control Activity", control_id, "control_name")
@@ -400,9 +406,9 @@ class ComplianceAnomalyDetector:
 			return anomalies
 
 		# Detect significant increase (default: 2x)
-		spike_threshold = 2.0 / self.sensitivity
+		spike_threshold = self.DEFICIENCY_SPIKE_MULTIPLIER / self.sensitivity
 
-		if increase_ratio >= spike_threshold and recent_count > 5:
+		if increase_ratio >= spike_threshold and recent_count > self.MIN_TESTS_FOR_CLUSTER:
 			anomalies.append(
 				{
 					"anomaly_type": "Deficiency Spike",
