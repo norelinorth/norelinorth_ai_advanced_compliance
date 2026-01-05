@@ -26,15 +26,19 @@ jobs:
         include:
           - frappe-version: "version-15"
             python-version: "3.11"
+            node-version: "18"
             container: 1
           - frappe-version: "version-15"
             python-version: "3.11"
+            node-version: "18"
             container: 2
           - frappe-version: "develop"
             python-version: "3.14"
+            node-version: "24"
             container: 1
           - frappe-version: "develop"
             python-version: "3.14"
+            node-version: "24"
             container: 2
 
     name: Python Tests (Frappe ${{ matrix.frappe-version }}, Python ${{ matrix.python-version }}, ${{ matrix.container }}/2)
@@ -83,7 +87,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ matrix.node-version }}
           check-latest: true
 
       - name: Add to Hosts
