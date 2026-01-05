@@ -197,7 +197,7 @@ class ChangeDetector:
 			common_words = removed_words & added_words
 			all_words = removed_words | added_words
 
-			if all_words and len(common_words) / len(all_words) > 0.8:
+			if len(all_words) > 0 and len(common_words) / len(all_words) > 0.8:
 				return "Clarification"
 
 			return "Amendment"

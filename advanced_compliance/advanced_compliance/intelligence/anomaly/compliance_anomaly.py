@@ -379,13 +379,14 @@ class ComplianceAnomalyDetector:
 		recent_count = frappe.db.count("Deficiency", {"creation": [">=", mid_date]})
 
 		# Previous period deficiencies - use SQL for date range
-		previous_count = frappe.db.sql(
+		result = frappe.db.sql(
 			"""
             SELECT COUNT(*) FROM `tabDeficiency`
             WHERE creation >= %(start_date)s AND creation < %(mid_date)s
         """,
 			{"start_date": start_date, "mid_date": mid_date},
-		)[0][0]
+		)
+		previous_count = result[0][0] if result and len(result) > 0 else 0
 
 		# Skip if no baseline data
 		if not previous_count or previous_count == 0:

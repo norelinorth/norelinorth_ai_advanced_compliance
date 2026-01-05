@@ -78,7 +78,7 @@ class NLQueryLog(Document):
 			as_dict=True,
 		)
 
-		if avg_time and avg_time[0].avg_time:
+		if avg_time and len(avg_time) > 0 and avg_time[0].avg_time:
 			stats["avg_response_time_ms"] = round(avg_time[0].avg_time, 2)
 
 		return stats

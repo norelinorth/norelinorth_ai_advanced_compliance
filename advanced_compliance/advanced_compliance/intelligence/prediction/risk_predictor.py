@@ -194,7 +194,7 @@ class RiskPredictor:
 			as_dict=True,
 		)
 
-		if results and results[0].total and results[0].total > 0:
+		if results and len(results) > 0 and results[0].total and results[0].total > 0:
 			passed = results[0].passed or 0  # Handle NULL from SUM
 			return passed / results[0].total
 

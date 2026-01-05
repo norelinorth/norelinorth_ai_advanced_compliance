@@ -242,7 +242,9 @@ class AIClientWrapper:
 		user_messages = [m for m in messages if m.get("role") == "user"]
 		system_messages = [m for m in messages if m.get("role") == "system"]
 
-		prompt = user_messages[-1]["content"] if user_messages else ""
-		system_message = system_messages[0]["content"] if system_messages else None
+		prompt = user_messages[-1]["content"] if user_messages and len(user_messages) > 0 else ""
+		system_message = (
+			system_messages[0]["content"] if system_messages and len(system_messages) > 0 else None
+		)
 
 		return call_llm(prompt, system_message=system_message)
