@@ -1,54 +1,41 @@
-name: CI
+name: Server Tests (MariaDB)
 
 on:
+  pull_request:
   push:
     branches:
       - main
-      - develop
       - version-*
-  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
-  group: develop-advanced_compliance-${{ github.event.number }}
+  group: server-tests-mariadb-${{ github.event_name }}-${{ github.event.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  linter:
-    name: Linter
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install ruff
-        run: pip install ruff
-
-      - name: Run Linter (ruff)
-        run: ruff check advanced_compliance/
-
-  tests:
-    name: Server Tests
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
     strategy:
       fail-fast: false
       matrix:
+        frappe-version: ["version-15", "version-16"]
         container: [1, 2]
+
+    name: Python Tests (Frappe ${{ matrix.frappe-version }}, ${{ matrix.container }}/2)
 
     services:
       mariadb:
         image: mariadb:10.6
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MARIADB_ROOT_PASSWORD: root
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+        options: --health-cmd="healthcheck.sh --su-mysql --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
 
       redis-cache:
         image: redis:alpine
@@ -68,6 +55,14 @@ jobs:
     steps:
       - name: Clone
         uses: actions/checkout@v4
+
+      - name: Check for valid Python & Merge Conflicts
+        run: |
+          python -m py_compile -q -j 0 .
+          if grep -lr --exclude-dir=node_modules "^<<<<<<< " .; then
+              echo "Found merge conflicts"
+              exit 1
+          fi
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -101,11 +96,11 @@ jobs:
 
       - name: Get Frappe
         run: |
-          git clone https://github.com/frappe/frappe --branch version-15 --depth 1
+          git clone https://github.com/frappe/frappe --branch ${{ matrix.frappe-version }} --depth 1
 
       - name: Get ERPNext
         run: |
-          git clone https://github.com/frappe/erpnext --branch version-15 --depth 1
+          git clone https://github.com/frappe/erpnext --branch ${{ matrix.frappe-version }} --depth 1
 
       - name: Setup Bench
         run: |
@@ -128,6 +123,15 @@ jobs:
         working-directory: /home/runner/work/advanced_compliance/advanced_compliance/frappe-bench
         run: |
           bench --site test_site set-config allow_tests true
-          bench --site test_site run-tests --app advanced_compliance --split ${{ matrix.container }}/2
+          bench --site test_site run-tests --app advanced_compliance --coverage --split ${{ matrix.container }}/2
         env:
           TYPE: server
+
+      - name: Upload coverage data
+        if: matrix.container == 1
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: /home/runner/work/advanced_compliance/advanced_compliance/frappe-bench/sites/coverage.xml
+          flags: server-${{ matrix.frappe-version }}
