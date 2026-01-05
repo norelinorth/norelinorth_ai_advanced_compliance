@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        frappe-version: ["version-15", "version-16"]
+        frappe-version: ["version-15", "develop"]
         container: [1, 2]
 
     name: Python Tests (Frappe ${{ matrix.frappe-version }}, ${{ matrix.container }}/2)
