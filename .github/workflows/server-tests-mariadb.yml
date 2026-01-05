@@ -105,7 +105,7 @@ jobs:
       - name: Setup Bench
         run: |
           pip install frappe-bench
-          bench init --skip-assets --frappe-path ~/work/advanced_compliance/advanced_compliance/frappe --python $(which python) frappe-bench
+          bench init --skip-assets --skip-redis-config-generation --frappe-path ~/work/advanced_compliance/advanced_compliance/frappe --python $(which python) frappe-bench
 
       - name: Setup Test Environment
         working-directory: /home/runner/work/advanced_compliance/advanced_compliance/frappe-bench
