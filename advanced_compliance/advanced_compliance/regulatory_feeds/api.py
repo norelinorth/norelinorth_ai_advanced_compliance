@@ -305,9 +305,14 @@ def get_compliance_dashboard_data():
 		limit=5,
 	)
 
-	# Changes by severity
-	changes_by_severity = frappe.get_all(
-		"Regulatory Change", fields=["severity", "count(*) as count"], group_by="severity"
+	# Changes by severity (using frappe.db.sql for v15/v16 compatibility)
+	changes_by_severity = frappe.db.sql(
+		"""
+		SELECT severity, COUNT(*) as count
+		FROM `tabRegulatory Change`
+		GROUP BY severity
+		""",
+		as_dict=True,
 	)
 
 	return {
