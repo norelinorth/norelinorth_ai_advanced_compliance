@@ -514,7 +514,7 @@ Respond with ONLY valid JSON:
 			}
 
 		except Exception as e:
-			frappe.log_error(message=f"LLM Query Error: {str(e)}", title="NL Query Engine LLM Error")
+			frappe.log_error(message=f"LLM Query Error: {str(e)}", title=_("NL Query Engine LLM Error"))
 			# Fall back to rule-based
 			return self._execute_rule_based_query(parsed)
 
@@ -777,7 +777,7 @@ Do not just say "Found X results" - provide insight about WHAT was found and WHY
 			log.insert()
 		except Exception as e:
 			# Don't fail the query if logging fails
-			frappe.log_error(message=f"Failed to log NL query: {str(e)}", title="NL Query Log Error")
+			frappe.log_error(message=f"Failed to log NL query: {str(e)}", title=_("NL Query Log Error"))
 
 	def get_suggestions(self, partial_query):
 		"""
@@ -832,6 +832,10 @@ def ask_compliance_question(question, use_llm=False):
 
 	if not is_ai_feature_enabled("natural_language_queries"):
 		frappe.throw(_("Natural language queries are not enabled"))
+
+	# Check permissions - user needs read access to compliance data
+	if not frappe.has_permission("Control Activity", "read"):
+		frappe.throw(_("Insufficient permissions to query compliance data"))
 
 	engine = NLQueryEngine()
 	return engine.query(question, use_llm=cint(use_llm))

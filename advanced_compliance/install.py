@@ -34,7 +34,7 @@ def after_migrate():
 	except Exception as e:
 		# Log but don't fail migrate if master data creation fails
 		frappe.log_error(
-			message=f"Error creating compliance master data: {str(e)}", title="Advanced Compliance Setup"
+			message=f"Error creating compliance master data: {str(e)}", title=_("Advanced Compliance Setup")
 		)
 
 

@@ -214,7 +214,7 @@ class SemanticSearch:
 			# openai not installed
 			return None
 		except Exception as e:
-			frappe.log_error(message=f"OpenAI embedding error: {str(e)}", title="OpenAI Embedding Error")
+			frappe.log_error(message=f"OpenAI embedding error: {str(e)}", title=_("OpenAI Embedding Error"))
 			return None
 
 	def _generate_local_embedding(self, text):
@@ -239,7 +239,7 @@ class SemanticSearch:
 			# sentence-transformers not installed
 			return None
 		except Exception as e:
-			frappe.log_error(message=f"Local embedding error: {str(e)}", title="Local Embedding Error")
+			frappe.log_error(message=f"Local embedding error: {str(e)}", title=_("Local Embedding Error"))
 			return None
 
 	def _cosine_similarity(self, vec1, vec2):

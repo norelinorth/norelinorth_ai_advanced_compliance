@@ -141,10 +141,10 @@ def get_ai_provider_config():
 
 		return AIProviderResolver.get_ai_provider_config()
 	except ImportError:
-		frappe.log_error(message="AI Assistant app is not installed", title="AI Provider Error")
+		frappe.log_error(message="AI Assistant app is not installed", title=_("AI Provider Error"))
 		return None
 	except Exception as e:
-		frappe.log_error(message=f"Failed to get AI Provider config: {str(e)}", title="AI Provider Error")
+		frappe.log_error(message=f"Failed to get AI Provider config: {str(e)}", title=_("AI Provider Error"))
 		return None
 
 
