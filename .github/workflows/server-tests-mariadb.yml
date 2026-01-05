@@ -23,10 +23,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        frappe-version: ["version-15", "develop"]
-        container: [1, 2]
+        include:
+          - frappe-version: "version-15"
+            python-version: "3.11"
+            container: 1
+          - frappe-version: "version-15"
+            python-version: "3.11"
+            container: 2
+          - frappe-version: "develop"
+            python-version: "3.12"
+            container: 1
+          - frappe-version: "develop"
+            python-version: "3.12"
+            container: 2
 
-    name: Python Tests (Frappe ${{ matrix.frappe-version }}, ${{ matrix.container }}/2)
+    name: Python Tests (Frappe ${{ matrix.frappe-version }}, Python ${{ matrix.python-version }}, ${{ matrix.container }}/2)
 
     services:
       mariadb:
@@ -67,7 +78,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
