@@ -94,33 +94,39 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Get Frappe
+      - name: Install MariaDB Client
         run: |
-          git clone https://github.com/frappe/frappe --branch ${{ matrix.frappe-version }} --depth 1
-
-      - name: Get ERPNext
-        run: |
-          git clone https://github.com/frappe/erpnext --branch ${{ matrix.frappe-version }} --depth 1
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client
 
       - name: Setup Bench
         run: |
           pip install frappe-bench
-          bench init --skip-assets --skip-redis-config-generation --frappe-path ~/work/advanced_compliance/advanced_compliance/frappe --python $(which python) frappe-bench
+          bench init --skip-redis-config-generation --skip-assets --frappe-branch ${{ matrix.frappe-version }} --python "$(which python)" ~/frappe-bench
+        env:
+          BENCH_USE_UV: '0'
+
+      - name: Configure MariaDB
+        working-directory: /home/runner/frappe-bench
+        run: |
+          mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+          mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
       - name: Setup Test Environment
-        working-directory: /home/runner/work/advanced_compliance/advanced_compliance/frappe-bench
+        working-directory: /home/runner/frappe-bench
         run: |
-          bench get-app erpnext ~/work/advanced_compliance/advanced_compliance/erpnext
+          bench get-app erpnext --branch ${{ matrix.frappe-version }}
           bench get-app advanced_compliance $GITHUB_WORKSPACE
           bench setup requirements --dev
-          bench new-site test_site --mariadb-root-password root --admin-password admin --no-mariadb-socket
+          bench new-site --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
           bench --site test_site install-app advanced_compliance
+          bench build
         env:
           CI: 'Yes'
 
       - name: Run Tests
-        working-directory: /home/runner/work/advanced_compliance/advanced_compliance/frappe-bench
+        working-directory: /home/runner/frappe-bench
         run: |
           bench --site test_site set-config allow_tests true
           bench --site test_site run-tests --app advanced_compliance --coverage --split ${{ matrix.container }}/2
@@ -133,5 +139,5 @@ jobs:
         with:
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: /home/runner/work/advanced_compliance/advanced_compliance/frappe-bench/sites/coverage.xml
+          files: /home/runner/frappe-bench/sites/coverage.xml
           flags: server-${{ matrix.frappe-version }}
