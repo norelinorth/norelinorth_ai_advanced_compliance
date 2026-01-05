@@ -31,10 +31,10 @@ jobs:
             python-version: "3.11"
             container: 2
           - frappe-version: "develop"
-            python-version: "3.12"
+            python-version: "3.14"
             container: 1
           - frappe-version: "develop"
-            python-version: "3.12"
+            python-version: "3.14"
             container: 2
 
     name: Python Tests (Frappe ${{ matrix.frappe-version }}, Python ${{ matrix.python-version }}, ${{ matrix.container }}/2)
