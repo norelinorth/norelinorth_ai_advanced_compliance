@@ -10,7 +10,7 @@ system notifications, email alerts, and weekly digests.
 
 import frappe
 from frappe import _
-from frappe.utils import nowdate, add_days, getdate
+from frappe.utils import add_days, getdate, nowdate
 
 
 class RegulatoryAlertManager:
@@ -22,11 +22,7 @@ class RegulatoryAlertManager:
 	"""
 
 	# Roles that should receive regulatory notifications
-	COMPLIANCE_ROLES = [
-		"Compliance Admin",
-		"Compliance Officer",
-		"Internal Auditor"
-	]
+	COMPLIANCE_ROLES = ["Compliance Admin", "Compliance Officer", "Internal Auditor"]
 
 	def __init__(self):
 		"""Initialize alert manager."""
@@ -51,7 +47,7 @@ class RegulatoryAlertManager:
 			if not frappe.db.exists("Regulatory Update", regulatory_update):
 				frappe.log_error(
 					message=f"Regulatory Update {regulatory_update} does not exist",
-					title="Alert Notification Skipped"
+					title="Alert Notification Skipped",
 				)
 				return
 
@@ -62,24 +58,20 @@ class RegulatoryAlertManager:
 		# Create system notification
 		self._create_notification(
 			subject=_("New Regulatory Update: {0}").format(update.title[:50]),
-			message=_("A new regulatory update has been ingested from {0}. "
-					  "Document type: {1}").format(
-				update.regulatory_body or "External Source",
-				update.document_type or "Unknown"
+			message=_("A new regulatory update has been ingested from {0}. " "Document type: {1}").format(
+				update.regulatory_body or "External Source", update.document_type or "Unknown"
 			),
 			for_roles=self.COMPLIANCE_ROLES,
 			document_type="Regulatory Update",
-			document_name=update.name
+			document_name=update.name,
 		)
 
 		# Send email for high-priority updates
 		if update.document_type in ("Rule", "Amendment", "Enforcement"):
 			self._send_email_alert(
-				subject=_("Important Regulatory Update: {0}").format(
-					update.title[:80]
-				),
+				subject=_("Important Regulatory Update: {0}").format(update.title[:80]),
 				message=self._format_update_email(update),
-				for_roles=self.COMPLIANCE_ROLES
+				for_roles=self.COMPLIANCE_ROLES,
 			)
 
 	def notify_impact_assessment(self, impact_assessment):
@@ -94,14 +86,11 @@ class RegulatoryAlertManager:
 			if not frappe.db.exists("Regulatory Impact Assessment", impact_assessment):
 				frappe.log_error(
 					message=f"Regulatory Impact Assessment {impact_assessment} does not exist",
-					title="Alert Notification Skipped"
+					title="Alert Notification Skipped",
 				)
 				return
 
-			assessment = frappe.get_doc(
-				"Regulatory Impact Assessment",
-				impact_assessment
-			)
+			assessment = frappe.get_doc("Regulatory Impact Assessment", impact_assessment)
 		else:
 			assessment = impact_assessment
 
@@ -109,7 +98,7 @@ class RegulatoryAlertManager:
 		if not frappe.db.exists("Control Activity", assessment.control_activity):
 			frappe.log_error(
 				message=f"Control Activity {assessment.control_activity} does not exist for assessment {assessment.name}",
-				title="Alert Notification Skipped"
+				title="Alert Notification Skipped",
 			)
 			return
 
@@ -120,17 +109,14 @@ class RegulatoryAlertManager:
 			control_name = control.control_name or control.name
 
 			self._create_notification(
-				subject=_("Regulatory Impact on Your Control: {0}").format(
-					control_name[:50]
-				),
-				message=_("A regulatory change may affect control '{0}'. "
-						  "Impact type: {1}. Please review the assessment.").format(
-					control_name,
-					assessment.impact_type or "Review Required"
-				),
+				subject=_("Regulatory Impact on Your Control: {0}").format(control_name[:50]),
+				message=_(
+					"A regulatory change may affect control '{0}'. "
+					"Impact type: {1}. Please review the assessment."
+				).format(control_name, assessment.impact_type or "Review Required"),
 				for_user=control.control_owner,
 				document_type="Regulatory Impact Assessment",
-				document_name=assessment.name
+				document_name=assessment.name,
 			)
 
 	def notify_upcoming_effective_date(self, days_ahead=30):
@@ -148,40 +134,31 @@ class RegulatoryAlertManager:
 			filters={
 				"effective_date": ["<=", upcoming_date],
 				"effective_date": [">=", today],
-				"status": ["not in", ["Implemented", "Not Applicable"]]
+				"status": ["not in", ["Implemented", "Not Applicable"]],
 			},
-			fields=["name", "title", "effective_date", "document_type"]
+			fields=["name", "title", "effective_date", "document_type"],
 		)
 
 		for update in updates:
 			days_until = (getdate(update.effective_date) - today).days
 
-			urgency = "Critical" if days_until <= 7 else (
-				"High" if days_until <= 14 else "Medium"
-			)
+			urgency = "Critical" if days_until <= 7 else ("High" if days_until <= 14 else "Medium")
 
 			self._create_notification(
-				subject=_("Upcoming Deadline: {0} ({1} days)").format(
-					update.title[:40],
-					days_until
-				),
-				message=_("Regulatory update '{0}' becomes effective on {1}. "
-						  "{2} days remaining.").format(
-					update.title,
-					frappe.format(update.effective_date, "Date"),
-					days_until
+				subject=_("Upcoming Deadline: {0} ({1} days)").format(update.title[:40], days_until),
+				message=_("Regulatory update '{0}' becomes effective on {1}. " "{2} days remaining.").format(
+					update.title, frappe.format(update.effective_date, "Date"), days_until
 				),
 				for_roles=self.COMPLIANCE_ROLES,
 				document_type="Regulatory Update",
-				document_name=update.name
+				document_name=update.name,
 			)
 
 			# Email for critical deadlines
 			if urgency == "Critical":
 				self._send_email_alert(
 					subject=_("URGENT: Regulatory Deadline in {0} days - {1}").format(
-						days_until,
-						update.title[:60]
+						days_until, update.title[:60]
 					),
 					message=_(
 						"The regulatory update '{0}' becomes effective on {1}.\n\n"
@@ -192,9 +169,9 @@ class RegulatoryAlertManager:
 						update.title,
 						frappe.format(update.effective_date, "Date"),
 						days_until,
-						update.document_type or "Unknown"
+						update.document_type or "Unknown",
 					),
-					for_roles=self.COMPLIANCE_ROLES
+					for_roles=self.COMPLIANCE_ROLES,
 				)
 
 	def send_weekly_digest(self):
@@ -204,27 +181,19 @@ class RegulatoryAlertManager:
 		# Get new updates from past week
 		new_updates = frappe.get_all(
 			"Regulatory Update",
-			filters={
-				"creation": [">=", week_ago]
-			},
-			fields=[
-				"name", "title", "regulatory_body",
-				"publication_date", "document_type"
-			],
+			filters={"creation": [">=", week_ago]},
+			fields=["name", "title", "regulatory_body", "publication_date", "document_type"],
 			order_by="publication_date desc",
-			limit=20
+			limit=20,
 		)
 
 		# Get pending impact assessments
 		pending_assessments = frappe.get_all(
 			"Regulatory Impact Assessment",
 			filters={"status": "Pending"},
-			fields=[
-				"name", "control_activity", "impact_type",
-				"priority", "confidence_score"
-			],
+			fields=["name", "control_activity", "impact_type", "priority", "confidence_score"],
 			order_by="priority desc",
-			limit=20
+			limit=20,
 		)
 
 		# Get upcoming deadlines
@@ -233,11 +202,11 @@ class RegulatoryAlertManager:
 			filters={
 				"effective_date": ["<=", add_days(nowdate(), 30)],
 				"effective_date": [">=", nowdate()],
-				"status": ["not in", ["Implemented", "Not Applicable"]]
+				"status": ["not in", ["Implemented", "Not Applicable"]],
 			},
 			fields=["name", "title", "effective_date"],
 			order_by="effective_date asc",
-			limit=10
+			limit=10,
 		)
 
 		# Don't send if nothing to report
@@ -245,24 +214,17 @@ class RegulatoryAlertManager:
 			return
 
 		# Format digest content
-		content = self._format_weekly_digest(
-			new_updates,
-			pending_assessments,
-			upcoming,
-			week_ago
-		)
+		content = self._format_weekly_digest(new_updates, pending_assessments, upcoming, week_ago)
 
 		self._send_email_alert(
-			subject=_("Weekly Regulatory Digest - {0}").format(
-				frappe.format(nowdate(), "Date")
-			),
+			subject=_("Weekly Regulatory Digest - {0}").format(frappe.format(nowdate(), "Date")),
 			message=content,
-			for_roles=self.COMPLIANCE_ROLES
+			for_roles=self.COMPLIANCE_ROLES,
 		)
 
-	def _create_notification(self, subject, message, for_user=None,
-							for_roles=None, document_type=None,
-							document_name=None):
+	def _create_notification(
+		self, subject, message, for_user=None, for_roles=None, document_type=None, document_name=None
+	):
 		"""
 		Create system notification.
 
@@ -281,9 +243,7 @@ class RegulatoryAlertManager:
 		elif for_roles:
 			for role in for_roles:
 				role_users = frappe.get_all(
-					"Has Role",
-					filters={"role": role, "parenttype": "User"},
-					pluck="parent"
+					"Has Role", filters={"role": role, "parenttype": "User"}, pluck="parent"
 				)
 				users.extend(role_users)
 
@@ -292,12 +252,7 @@ class RegulatoryAlertManager:
 
 		for user in users:
 			# Skip if user doesn't exist or is disabled
-			user_doc = frappe.db.get_value(
-				"User",
-				user,
-				["enabled", "user_type"],
-				as_dict=True
-			)
+			user_doc = frappe.db.get_value("User", user, ["enabled", "user_type"], as_dict=True)
 
 			if not user_doc or not user_doc.enabled:
 				continue
@@ -306,26 +261,27 @@ class RegulatoryAlertManager:
 				continue
 
 			try:
-				notification = frappe.get_doc({
-					"doctype": "Notification Log",
-					"subject": subject,
-					"email_content": message,
-					"for_user": user,
-					"document_type": document_type,
-					"document_name": document_name,
-					"type": "Alert"
-				})
+				notification = frappe.get_doc(
+					{
+						"doctype": "Notification Log",
+						"subject": subject,
+						"email_content": message,
+						"for_user": user,
+						"document_type": document_type,
+						"document_name": document_name,
+						"type": "Alert",
+					}
+				)
 				notification.insert(ignore_permissions=True)
 			except Exception as e:
 				frappe.log_error(
 					message=f"Error creating notification for {user}: {str(e)}",
-					title=_("Notification Creation Error")
+					title=_("Notification Creation Error"),
 				)
 
 		frappe.db.commit()
 
-	def _send_email_alert(self, subject, message, for_user=None,
-						 for_roles=None):
+	def _send_email_alert(self, subject, message, for_user=None, for_roles=None):
 		"""
 		Send email alert.
 
@@ -344,19 +300,13 @@ class RegulatoryAlertManager:
 		elif for_roles:
 			for role in for_roles:
 				users = frappe.get_all(
-					"Has Role",
-					filters={"role": role, "parenttype": "User"},
-					pluck="parent"
+					"Has Role", filters={"role": role, "parenttype": "User"}, pluck="parent"
 				)
 				for user_name in users:
 					user = frappe.db.get_value(
-						"User",
-						user_name,
-						["email", "enabled", "user_type"],
-						as_dict=True
+						"User", user_name, ["email", "enabled", "user_type"], as_dict=True
 					)
-					if (user and user.enabled and
-						user.user_type != "Website User" and user.email):
+					if user and user.enabled and user.user_type != "Website User" and user.email:
 						recipients.append(user.email)
 
 		recipients = list(set(recipients))
@@ -367,13 +317,10 @@ class RegulatoryAlertManager:
 					recipients=recipients,
 					subject=subject,
 					message=message,
-					now=False  # Queue for sending
+					now=False,  # Queue for sending
 				)
 			except Exception as e:
-				frappe.log_error(
-					message=f"Error sending email: {str(e)}",
-					title=_("Email Send Error")
-				)
+				frappe.log_error(message=f"Error sending email: {str(e)}", title=_("Email Send Error"))
 
 	def _format_update_email(self, update):
 		"""
@@ -394,32 +341,18 @@ class RegulatoryAlertManager:
 		]
 
 		if update.publication_date:
-			lines.append(_("Publication Date: {0}").format(
-				frappe.format(update.publication_date, "Date")
-			))
+			lines.append(_("Publication Date: {0}").format(frappe.format(update.publication_date, "Date")))
 
 		if update.effective_date:
-			lines.append(_("Effective Date: {0}").format(
-				frappe.format(update.effective_date, "Date")
-			))
+			lines.append(_("Effective Date: {0}").format(frappe.format(update.effective_date, "Date")))
 
 		if update.summary:
-			lines.extend([
-				"",
-				_("Summary:"),
-				update.summary[:500]
-			])
+			lines.extend(["", _("Summary:"), update.summary[:500]])
 
 		if update.original_url:
-			lines.extend([
-				"",
-				_("Original Source: {0}").format(update.original_url)
-			])
+			lines.extend(["", _("Original Source: {0}").format(update.original_url)])
 
-		lines.extend([
-			"",
-			_("Please review this update in the system.")
-		])
+		lines.extend(["", _("Please review this update in the system.")])
 
 		return "\n".join(lines)
 
@@ -439,37 +372,27 @@ class RegulatoryAlertManager:
 		lines = [
 			_("Weekly Regulatory Digest"),
 			_("Period: {0} to {1}").format(
-				frappe.format(week_start, "Date"),
-				frappe.format(nowdate(), "Date")
+				frappe.format(week_start, "Date"), frappe.format(nowdate(), "Date")
 			),
 			"=" * 50,
-			""
+			"",
 		]
 
 		# New updates section
 		if updates:
-			lines.extend([
-				_("NEW REGULATORY UPDATES ({0})").format(len(updates)),
-				"-" * 30
-			])
+			lines.extend([_("NEW REGULATORY UPDATES ({0})").format(len(updates)), "-" * 30])
 			for update in updates:
-				lines.append(
-					f"• {update.title[:60]} ({update.regulatory_body or 'Unknown'})"
-				)
+				lines.append(f"• {update.title[:60]} ({update.regulatory_body or 'Unknown'})")
 			lines.append("")
 
 		# Pending assessments section
 		if assessments:
-			lines.extend([
-				_("PENDING IMPACT ASSESSMENTS ({0})").format(len(assessments)),
-				"-" * 30
-			])
+			lines.extend([_("PENDING IMPACT ASSESSMENTS ({0})").format(len(assessments)), "-" * 30])
 			for assessment in assessments:
-				control_name = frappe.db.get_value(
-					"Control Activity",
-					assessment.control_activity,
-					"control_name"
-				) or assessment.control_activity
+				control_name = (
+					frappe.db.get_value("Control Activity", assessment.control_activity, "control_name")
+					or assessment.control_activity
+				)
 				lines.append(
 					f"• {control_name[:40]} - {assessment.impact_type} "
 					f"(Confidence: {assessment.confidence_score:.0f}%)"
@@ -478,23 +401,23 @@ class RegulatoryAlertManager:
 
 		# Upcoming deadlines section
 		if upcoming:
-			lines.extend([
-				_("UPCOMING REGULATORY DEADLINES"),
-				"-" * 30
-			])
+			lines.extend([_("UPCOMING REGULATORY DEADLINES"), "-" * 30])
 			for item in upcoming:
 				days = (getdate(item.effective_date) - getdate(nowdate())).days
 				lines.append(
-					f"• {item.title[:50]} - {frappe.format(item.effective_date, 'Date')} "
-					f"({days} days)"
+					f"• {item.title[:50]} - {frappe.format(item.effective_date, 'Date')} " f"({days} days)"
 				)
 			lines.append("")
 
 		# Footer
-		lines.extend([
-			"=" * 50,
-			_("This is an automated digest. Please review the compliance portal "
-			  "for detailed information.")
-		])
+		lines.extend(
+			[
+				"=" * 50,
+				_(
+					"This is an automated digest. Please review the compliance portal "
+					"for detailed information."
+				),
+			]
+		)
 
 		return "\n".join(lines)

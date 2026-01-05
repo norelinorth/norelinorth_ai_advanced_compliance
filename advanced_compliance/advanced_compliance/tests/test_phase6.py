@@ -13,8 +13,9 @@ Test Coverage:
 """
 
 import unittest
+
 import frappe
-from frappe.utils import nowdate, add_days
+from frappe.utils import add_days, nowdate
 
 
 class TestCacheUtilities(unittest.TestCase):
@@ -26,10 +27,7 @@ class TestCacheUtilities(unittest.TestCase):
 
 	def test_get_cached_with_generator(self):
 		"""Test caching with generator function."""
-		from advanced_compliance.advanced_compliance.utils.cache import (
-			get_cached,
-			invalidate_cache
-		)
+		from advanced_compliance.advanced_compliance.utils.cache import get_cached, invalidate_cache
 
 		# Test that get_cached returns valid values from generator
 		def generator():
@@ -46,10 +44,7 @@ class TestCacheUtilities(unittest.TestCase):
 
 	def test_invalidate_cache(self):
 		"""Test cache invalidation."""
-		from advanced_compliance.advanced_compliance.utils.cache import (
-			get_cached,
-			invalidate_cache
-		)
+		from advanced_compliance.advanced_compliance.utils.cache import get_cached, invalidate_cache
 
 		call_count = [0]
 
@@ -78,9 +73,7 @@ class TestOptimizations(unittest.TestCase):
 
 	def test_get_compliance_summary(self):
 		"""Test compliance summary query."""
-		from advanced_compliance.advanced_compliance.utils.optimizations import (
-			get_compliance_summary
-		)
+		from advanced_compliance.advanced_compliance.utils.optimizations import get_compliance_summary
 
 		summary = get_compliance_summary()
 
@@ -169,9 +162,7 @@ class TestFormatting(unittest.TestCase):
 
 	def test_format_percentage_change(self):
 		"""Test percentage change formatting."""
-		from advanced_compliance.advanced_compliance.utils.formatting import (
-			format_percentage_change
-		)
+		from advanced_compliance.advanced_compliance.utils.formatting import format_percentage_change
 
 		# Test increase
 		increase = format_percentage_change(110, 100)
@@ -272,9 +263,7 @@ class TestDemoDataGenerator(unittest.TestCase):
 
 	def test_generate_demo_data(self):
 		"""Test demo data generation."""
-		from advanced_compliance.advanced_compliance.demo.generate_demo_data import (
-			generate_demo_data
-		)
+		from advanced_compliance.advanced_compliance.demo.generate_demo_data import generate_demo_data
 
 		result = generate_demo_data()
 
@@ -286,8 +275,8 @@ class TestDemoDataGenerator(unittest.TestCase):
 	def test_clear_demo_data(self):
 		"""Test demo data clearing."""
 		from advanced_compliance.advanced_compliance.demo.generate_demo_data import (
+			clear_demo_data,
 			generate_demo_data,
-			clear_demo_data
 		)
 
 		# First generate some data
@@ -306,35 +295,26 @@ class TestTranslations(unittest.TestCase):
 		"""Test that translation files exist."""
 		import os
 
-		translations_dir = frappe.get_app_path(
-			"advanced_compliance",
-			"translations"
-		)
+		translations_dir = frappe.get_app_path("advanced_compliance", "translations")
 
 		expected_files = ["de.csv", "es.csv", "fr.csv"]
 
 		for filename in expected_files:
 			filepath = os.path.join(translations_dir, filename)
-			self.assertTrue(
-				os.path.exists(filepath),
-				f"Translation file {filename} does not exist"
-			)
+			self.assertTrue(os.path.exists(filepath), f"Translation file {filename} does not exist")
 
 	def test_translation_file_format(self):
 		"""Test that translation files have correct format."""
-		import os
 		import csv
+		import os
 
-		translations_dir = frappe.get_app_path(
-			"advanced_compliance",
-			"translations"
-		)
+		translations_dir = frappe.get_app_path("advanced_compliance", "translations")
 
 		for filename in ["de.csv", "es.csv", "fr.csv"]:
 			filepath = os.path.join(translations_dir, filename)
 
 			if os.path.exists(filepath):
-				with open(filepath, 'r', encoding='utf-8') as f:
+				with open(filepath, encoding="utf-8") as f:
 					reader = csv.reader(f)
 					header = next(reader)
 

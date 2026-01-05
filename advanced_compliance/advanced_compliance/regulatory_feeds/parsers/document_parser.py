@@ -29,37 +29,37 @@ class DocumentParser:
 	# Common regulatory citation patterns
 	CITATION_PATTERNS = [
 		# CFR citations: 17 CFR 240.10b-5, 17 CFR Part 240
-		r'\d+\s*CFR\s*(?:Part\s*)?\d+(?:\.\d+[a-z]?(?:-\d+)?)?',
+		r"\d+\s*CFR\s*(?:Part\s*)?\d+(?:\.\d+[a-z]?(?:-\d+)?)?",
 		# Section references: Section 302(a), Section 404
-		r'Section\s*\d+(?:\([a-z]\))?(?:\([0-9]+\))?',
+		r"Section\s*\d+(?:\([a-z]\))?(?:\([0-9]+\))?",
 		# SEC Rules: Rule 10b-5, Rule 144
-		r'Rule\s*\d+[a-z]?(?:-\d+)?',
+		r"Rule\s*\d+[a-z]?(?:-\d+)?",
 		# ASC citations: ASC 606-10-25, ASC 842
-		r'ASC\s*\d+(?:-\d+)?(?:-\d+)?',
+		r"ASC\s*\d+(?:-\d+)?(?:-\d+)?",
 		# PCAOB standards: PCAOB AS 2201, AS 1301
-		r'(?:PCAOB\s*)?AS\s*\d+',
+		r"(?:PCAOB\s*)?AS\s*\d+",
 		# SOX sections: SOX 302, SOX 404
-		r'SOX\s*\d+',
+		r"SOX\s*\d+",
 		# GAAP references
-		r'GAAP\s*(?:Section\s*)?\d+',
+		r"GAAP\s*(?:Section\s*)?\d+",
 		# ISA standards: ISA 315, ISA 700
-		r'ISA\s*\d+',
+		r"ISA\s*\d+",
 	]
 
 	# Date patterns for effective dates
 	EFFECTIVE_DATE_PATTERNS = [
 		# "effective January 1, 2025" or "effective on January 1, 2025"
-		r'effective\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})',
+		r"effective\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})",
 		# "effective as of January 1, 2025"
-		r'effective\s+as\s+of\s+(\w+\s+\d{1,2},?\s+\d{4})',
+		r"effective\s+as\s+of\s+(\w+\s+\d{1,2},?\s+\d{4})",
 		# "effective 01/01/2025" or "effective 1/1/2025"
-		r'effective\s+(?:on\s+)?(\d{1,2}/\d{1,2}/\d{4})',
+		r"effective\s+(?:on\s+)?(\d{1,2}/\d{1,2}/\d{4})",
 		# "compliance date: January 1, 2025"
-		r'compliance\s+date[:\s]+(\w+\s+\d{1,2},?\s+\d{4})',
+		r"compliance\s+date[:\s]+(\w+\s+\d{1,2},?\s+\d{4})",
 		# "becomes effective January 1, 2025"
-		r'becomes\s+effective\s+(\w+\s+\d{1,2},?\s+\d{4})',
+		r"becomes\s+effective\s+(\w+\s+\d{1,2},?\s+\d{4})",
 		# ISO format: "effective 2025-01-01"
-		r'effective\s+(?:on\s+)?(\d{4}-\d{2}-\d{2})',
+		r"effective\s+(?:on\s+)?(\d{4}-\d{2}-\d{2})",
 	]
 
 	def __init__(self, text):
@@ -91,7 +91,7 @@ class DocumentParser:
 
 		for citation in citations:
 			# Normalize spacing
-			normalized_citation = re.sub(r'\s+', ' ', citation.strip())
+			normalized_citation = re.sub(r"\s+", " ", citation.strip())
 			normalized_citation = normalized_citation.upper()
 
 			if normalized_citation not in seen:
@@ -130,6 +130,7 @@ class DocumentParser:
 		# Try dateparser first (handles natural language dates)
 		try:
 			import dateparser
+
 			parsed = dateparser.parse(date_str)
 			if parsed:
 				return getdate(parsed)
@@ -142,11 +143,11 @@ class DocumentParser:
 		from datetime import datetime
 
 		formats = [
-			"%B %d, %Y",       # January 1, 2025
-			"%B %d %Y",        # January 1 2025
-			"%m/%d/%Y",        # 01/01/2025
-			"%Y-%m-%d",        # 2025-01-01
-			"%d %B %Y",        # 1 January 2025
+			"%B %d, %Y",  # January 1, 2025
+			"%B %d %Y",  # January 1 2025
+			"%m/%d/%Y",  # 01/01/2025
+			"%Y-%m-%d",  # 2025-01-01
+			"%d %B %Y",  # 1 January 2025
 		]
 
 		for fmt in formats:
@@ -176,11 +177,7 @@ class DocumentParser:
 
 			# Configure vectorizer
 			vectorizer = TfidfVectorizer(
-				max_features=top_n,
-				stop_words='english',
-				ngram_range=(1, 2),
-				min_df=1,
-				max_df=0.95
+				max_features=top_n, stop_words="english", ngram_range=(1, 2), min_df=1, max_df=0.95
 			)
 
 			# Fit and get feature names
@@ -207,21 +204,99 @@ class DocumentParser:
 		"""
 		# Common English stop words
 		stop_words = {
-			'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to',
-			'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are',
-			'were', 'been', 'be', 'have', 'has', 'had', 'do', 'does',
-			'did', 'will', 'would', 'could', 'should', 'may', 'might',
-			'this', 'that', 'these', 'those', 'it', 'its', 'they',
-			'their', 'we', 'our', 'you', 'your', 'he', 'she', 'him',
-			'her', 'his', 'which', 'who', 'whom', 'what', 'when', 'where',
-			'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more',
-			'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only',
-			'same', 'so', 'than', 'too', 'very', 'can', 'just', 'also',
-			'any', 'if', 'then', 'into', 'about', 'over', 'under', 'after'
+			"the",
+			"a",
+			"an",
+			"and",
+			"or",
+			"but",
+			"in",
+			"on",
+			"at",
+			"to",
+			"for",
+			"of",
+			"with",
+			"by",
+			"from",
+			"as",
+			"is",
+			"was",
+			"are",
+			"were",
+			"been",
+			"be",
+			"have",
+			"has",
+			"had",
+			"do",
+			"does",
+			"did",
+			"will",
+			"would",
+			"could",
+			"should",
+			"may",
+			"might",
+			"this",
+			"that",
+			"these",
+			"those",
+			"it",
+			"its",
+			"they",
+			"their",
+			"we",
+			"our",
+			"you",
+			"your",
+			"he",
+			"she",
+			"him",
+			"her",
+			"his",
+			"which",
+			"who",
+			"whom",
+			"what",
+			"when",
+			"where",
+			"why",
+			"how",
+			"all",
+			"each",
+			"every",
+			"both",
+			"few",
+			"more",
+			"most",
+			"other",
+			"some",
+			"such",
+			"no",
+			"nor",
+			"not",
+			"only",
+			"same",
+			"so",
+			"than",
+			"too",
+			"very",
+			"can",
+			"just",
+			"also",
+			"any",
+			"if",
+			"then",
+			"into",
+			"about",
+			"over",
+			"under",
+			"after",
 		}
 
 		# Tokenize and count
-		words = re.findall(r'\b[a-zA-Z]{3,}\b', self.text_lower)
+		words = re.findall(r"\b[a-zA-Z]{3,}\b", self.text_lower)
 		word_counts = {}
 
 		for word in words:
@@ -229,11 +304,7 @@ class DocumentParser:
 				word_counts[word] = word_counts.get(word, 0) + 1
 
 		# Sort by frequency
-		sorted_words = sorted(
-			word_counts.items(),
-			key=lambda x: x[1],
-			reverse=True
-		)
+		sorted_words = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)
 
 		return [word for word, count in sorted_words[:top_n]]
 
@@ -244,11 +315,7 @@ class DocumentParser:
 		Returns:
 			dict: Entities by type
 		"""
-		entities = {
-			"organizations": [],
-			"dates": [],
-			"regulations": []
-		}
+		entities = {"organizations": [], "dates": [], "regulations": []}
 
 		# Try spaCy for NER
 		try:
@@ -296,7 +363,7 @@ class DocumentParser:
 			return ""
 
 		# Split into sentences
-		sentences = re.split(r'(?<=[.!?])\s+', self.text)
+		sentences = re.split(r"(?<=[.!?])\s+", self.text)
 
 		# Filter short sentences
 		sentences = [s for s in sentences if len(s) > 30]
@@ -304,7 +371,7 @@ class DocumentParser:
 		# Take first N sentences
 		summary_sentences = sentences[:max_sentences]
 
-		return ' '.join(summary_sentences)
+		return " ".join(summary_sentences)
 
 	def detect_obligation_level(self):
 		"""
@@ -314,32 +381,35 @@ class DocumentParser:
 			dict: Obligation analysis with counts
 		"""
 		mandatory_words = [
-			'must', 'shall', 'required', 'mandatory',
-			'will', 'need to', 'have to', 'obligated'
+			"must",
+			"shall",
+			"required",
+			"mandatory",
+			"will",
+			"need to",
+			"have to",
+			"obligated",
 		]
 
 		permissive_words = [
-			'may', 'should', 'can', 'might', 'could',
-			'recommended', 'encouraged', 'suggested'
+			"may",
+			"should",
+			"can",
+			"might",
+			"could",
+			"recommended",
+			"encouraged",
+			"suggested",
 		]
 
-		prohibitive_words = [
-			'prohibited', 'forbidden', 'must not',
-			'shall not', 'may not', 'cannot'
-		]
+		prohibitive_words = ["prohibited", "forbidden", "must not", "shall not", "may not", "cannot"]
 
 		text_lower = self.text_lower
 
 		return {
-			"mandatory": sum(
-				text_lower.count(w) for w in mandatory_words
-			),
-			"permissive": sum(
-				text_lower.count(w) for w in permissive_words
-			),
-			"prohibitive": sum(
-				text_lower.count(w) for w in prohibitive_words
-			)
+			"mandatory": sum(text_lower.count(w) for w in mandatory_words),
+			"permissive": sum(text_lower.count(w) for w in permissive_words),
+			"prohibitive": sum(text_lower.count(w) for w in prohibitive_words),
 		}
 
 
@@ -376,21 +446,17 @@ class PDFParser:
 					if text:
 						text_parts.append(text)
 
-			return '\n'.join(text_parts)
+			return "\n".join(text_parts)
 
 		except ImportError:
 			frappe.log_error(
-				message="pdfplumber not installed. "
-						"Install with: pip install pdfplumber",
-				title=_("PDF Parser Error")
+				message="pdfplumber not installed. " "Install with: pip install pdfplumber",
+				title=_("PDF Parser Error"),
 			)
 			return ""
 
 		except Exception as e:
-			frappe.log_error(
-				message=str(e),
-				title=_("PDF Parse Error")
-			)
+			frappe.log_error(message=str(e), title=_("PDF Parse Error"))
 			return ""
 
 	def extract_tables(self):

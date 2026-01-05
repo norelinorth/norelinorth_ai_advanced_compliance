@@ -1,0 +1,26 @@
+{
+	"env": {
+		"browser": true,
+		"es2021": true,
+		"node": true
+	},
+	"extends": "eslint:recommended",
+	"parserOptions": {
+		"ecmaVersion": "latest",
+		"sourceType": "module"
+	},
+	"globals": {
+		"frappe": "readonly",
+		"__": "readonly",
+		"$": "readonly",
+		"jQuery": "readonly",
+		"cur_frm": "readonly",
+		"cur_list": "readonly",
+		"cur_dialog": "readonly",
+		"cur_page": "readonly"
+	},
+	"rules": {
+		"no-unused-vars": "warn",
+		"no-undef": "warn"
+	}
+}

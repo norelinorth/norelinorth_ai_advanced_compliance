@@ -12,9 +12,5 @@ Includes:
 """
 
 from .cache import get_cached, invalidate_cache
-from .optimizations import (
-	get_controls_with_stats,
-	get_risk_heatmap_data,
-	get_compliance_summary
-)
 from .formatting import format_for_locale
+from .optimizations import get_compliance_summary, get_controls_with_stats, get_risk_heatmap_data

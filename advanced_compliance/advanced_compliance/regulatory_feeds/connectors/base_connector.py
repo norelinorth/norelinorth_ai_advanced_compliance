@@ -91,11 +91,8 @@ class BaseConnector(ABC):
 					count += 1
 				except Exception as e:
 					frappe.log_error(
-						message=f"Error creating update: {str(e)}\n"
-								f"Data: {update_data}",
-						title=_("Feed Item Error: {0}").format(
-							self.feed_source.source_name
-						)
+						message=f"Error creating update: {str(e)}\n" f"Data: {update_data}",
+						title=_("Feed Item Error: {0}").format(self.feed_source.source_name),
 					)
 
 		self._update_last_sync()
@@ -115,10 +112,7 @@ class BaseConnector(ABC):
 		if not original_url:
 			return False
 
-		return frappe.db.exists(
-			"Regulatory Update",
-			{"original_url": original_url}
-		)
+		return frappe.db.exists("Regulatory Update", {"original_url": original_url})
 
 	def _create_update(self, update_data):
 		"""
@@ -130,20 +124,21 @@ class BaseConnector(ABC):
 		Returns:
 			Document: Created Regulatory Update document
 		"""
-		doc = frappe.get_doc({
-			"doctype": "Regulatory Update",
-			"source": self.feed_source.name,
-			"regulatory_body": update_data.get("regulatory_body")
-							   or self.feed_source.regulatory_body,
-			"title": update_data.get("title", "")[:255],
-			"publication_date": update_data.get("publication_date"),
-			"effective_date": update_data.get("effective_date"),
-			"summary": update_data.get("summary", "")[:2000],
-			"full_text": update_data.get("full_text", ""),
-			"original_url": update_data.get("original_url", ""),
-			"document_type": update_data.get("document_type", ""),
-			"status": "New"
-		})
+		doc = frappe.get_doc(
+			{
+				"doctype": "Regulatory Update",
+				"source": self.feed_source.name,
+				"regulatory_body": update_data.get("regulatory_body") or self.feed_source.regulatory_body,
+				"title": update_data.get("title", "")[:255],
+				"publication_date": update_data.get("publication_date"),
+				"effective_date": update_data.get("effective_date"),
+				"summary": update_data.get("summary", "")[:2000],
+				"full_text": update_data.get("full_text", ""),
+				"original_url": update_data.get("original_url", ""),
+				"document_type": update_data.get("document_type", ""),
+				"status": "New",
+			}
+		)
 		doc.insert(ignore_permissions=True)
 		frappe.db.commit()
 
@@ -154,10 +149,7 @@ class BaseConnector(ABC):
 		frappe.db.set_value(
 			"Regulatory Feed Source",
 			self.feed_source.name,
-			{
-				"last_sync": now_datetime(),
-				"last_sync_status": "Success"
-			}
+			{"last_sync": now_datetime(), "last_sync_status": "Success"},
 		)
 		frappe.db.commit()
 
@@ -174,8 +166,7 @@ class BaseConnector(ABC):
 			full_message = f"{message}\n{str(error)}"
 
 		frappe.log_error(
-			message=full_message,
-			title=_("Feed Sync Error: {0}").format(self.feed_source.source_name)
+			message=full_message, title=_("Feed Sync Error: {0}").format(self.feed_source.source_name)
 		)
 
 		frappe.db.set_value(
@@ -184,8 +175,8 @@ class BaseConnector(ABC):
 			{
 				"last_sync": now_datetime(),
 				"last_sync_status": "Failed",
-				"last_error": str(error)[:500] if error else message[:500]
-			}
+				"last_error": str(error)[:500] if error else message[:500],
+			},
 		)
 		frappe.db.commit()
 
@@ -217,6 +208,7 @@ class BaseConnector(ABC):
 					return True
 			elif match_type == "Regex":
 				import re
+
 				if re.search(keyword, text_lower):
 					return True
 
@@ -236,9 +228,6 @@ class BaseConnector(ABC):
 		if not doc_types_filter:
 			return True
 
-		allowed_types = [
-			t.strip().lower()
-			for t in doc_types_filter.split(",")
-		]
+		allowed_types = [t.strip().lower() for t in doc_types_filter.split(",")]
 
 		return doc_type.lower() in allowed_types

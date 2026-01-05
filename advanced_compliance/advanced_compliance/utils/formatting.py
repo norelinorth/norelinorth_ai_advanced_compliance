@@ -9,7 +9,7 @@ Provides locale-aware formatting for dates, currencies, and numbers.
 
 import frappe
 from frappe import _
-from frappe.utils import format_date, format_datetime, fmt_money, flt
+from frappe.utils import flt, fmt_money, format_date, format_datetime
 
 
 def format_for_locale(value, value_type, options=None):
@@ -40,7 +40,7 @@ def format_for_locale(value, value_type, options=None):
 		if not currency:
 			frappe.log_error(
 				message=_("No default currency configured. Please set default currency in System Settings."),
-				title="Formatting Error"
+				title="Formatting Error",
 			)
 			return str(value)  # Return raw value without currency formatting
 		return fmt_money(value, currency=currency)
@@ -95,14 +95,10 @@ def format_control_status(status):
 		"Active": "green",
 		"Under Review": "orange",
 		"Needs Improvement": "yellow",
-		"Deprecated": "red"
+		"Deprecated": "red",
 	}
 
-	return {
-		"status": status,
-		"color": status_colors.get(status, "gray"),
-		"label": _(status)
-	}
+	return {"status": status, "color": status_colors.get(status, "gray"), "label": _(status)}
 
 
 def format_test_result(result):
@@ -120,14 +116,10 @@ def format_test_result(result):
 		"Failed": "red",
 		"Partially Passed": "yellow",
 		"Not Tested": "gray",
-		"Inconclusive": "orange"
+		"Inconclusive": "orange",
 	}
 
-	return {
-		"result": result,
-		"color": result_colors.get(result, "gray"),
-		"label": _(result)
-	}
+	return {"result": result, "color": result_colors.get(result, "gray"), "label": _(result)}
 
 
 def format_deficiency_severity(severity):
@@ -144,16 +136,12 @@ def format_deficiency_severity(severity):
 		"Critical": {"color": "red", "priority": 1, "icon": "alert-circle"},
 		"Major": {"color": "orange", "priority": 2, "icon": "alert-triangle"},
 		"Moderate": {"color": "yellow", "priority": 3, "icon": "info"},
-		"Minor": {"color": "blue", "priority": 4, "icon": "info"}
+		"Minor": {"color": "blue", "priority": 4, "icon": "info"},
 	}
 
 	info = severity_info.get(severity, {"color": "gray", "priority": 5, "icon": "info"})
 
-	return {
-		"severity": severity,
-		"label": _(severity),
-		**info
-	}
+	return {"severity": severity, "label": _(severity), **info}
 
 
 def format_days_until(date, show_overdue=True):
@@ -167,7 +155,7 @@ def format_days_until(date, show_overdue=True):
 	Returns:
 		dict: Days with color and message
 	"""
-	from frappe.utils import date_diff, nowdate, getdate
+	from frappe.utils import date_diff, getdate, nowdate
 
 	if not date:
 		return {"days": None, "color": "gray", "message": _("No date set")}
@@ -176,11 +164,7 @@ def format_days_until(date, show_overdue=True):
 
 	if days < 0:
 		if show_overdue:
-			return {
-				"days": abs(days),
-				"color": "red",
-				"message": _("{0} days overdue").format(abs(days))
-			}
+			return {"days": abs(days), "color": "red", "message": _("{0} days overdue").format(abs(days))}
 		else:
 			return {"days": 0, "color": "gray", "message": _("Past")}
 
@@ -218,19 +202,14 @@ def format_percentage_change(current, previous):
 			"change": round(change, 1),
 			"direction": "up",
 			"color": "green",
-			"label": f"+{round(change, 1)}%"
+			"label": f"+{round(change, 1)}%",
 		}
 	elif change < 0:
 		return {
 			"change": round(change, 1),
 			"direction": "down",
 			"color": "red",
-			"label": f"{round(change, 1)}%"
+			"label": f"{round(change, 1)}%",
 		}
 	else:
-		return {
-			"change": 0,
-			"direction": "neutral",
-			"color": "gray",
-			"label": "0%"
-		}
+		return {"change": 0, "direction": "neutral", "color": "gray", "label": "0%"}

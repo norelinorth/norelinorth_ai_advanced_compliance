@@ -48,8 +48,7 @@ class PCAOBConnector(BaseConnector):
 					updates.extend(feed_updates)
 				except Exception as e:
 					frappe.log_error(
-						message=f"Error fetching {feed_name}: {str(e)}",
-						title=_("PCAOB Feed Error")
+						message=f"Error fetching {feed_name}: {str(e)}", title=_("PCAOB Feed Error")
 					)
 
 		return updates
@@ -68,8 +67,7 @@ class PCAOBConnector(BaseConnector):
 			import feedparser
 		except ImportError:
 			frappe.throw(
-				_("feedparser package is required. "
-				  "Please install it with: pip install feedparser")
+				_("feedparser package is required. " "Please install it with: pip install feedparser")
 			)
 
 		try:
@@ -124,7 +122,7 @@ class PCAOBConnector(BaseConnector):
 			"full_text": summary,
 			"original_url": item.get("link", ""),
 			"regulatory_body": "PCAOB",
-			"document_type": doc_type
+			"document_type": doc_type,
 		}
 
 	def _extract_date(self, item):
@@ -137,7 +135,7 @@ class PCAOBConnector(BaseConnector):
 		Returns:
 			date: Publication date or None
 		"""
-		if hasattr(item, 'published_parsed') and item.published_parsed:
+		if hasattr(item, "published_parsed") and item.published_parsed:
 			try:
 				return getdate(
 					f"{item.published_parsed.tm_year}-"

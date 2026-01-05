@@ -52,8 +52,7 @@ class SECEdgarConnector(BaseConnector):
 					updates.extend(feed_updates)
 				except Exception as e:
 					frappe.log_error(
-						message=f"Error fetching {feed_name}: {str(e)}",
-						title=_("SEC Feed Error")
+						message=f"Error fetching {feed_name}: {str(e)}", title=_("SEC Feed Error")
 					)
 
 		return updates
@@ -72,8 +71,7 @@ class SECEdgarConnector(BaseConnector):
 			import feedparser
 		except ImportError:
 			frappe.throw(
-				_("feedparser package is required. "
-				  "Please install it with: pip install feedparser")
+				_("feedparser package is required. " "Please install it with: pip install feedparser")
 			)
 
 		try:
@@ -129,7 +127,7 @@ class SECEdgarConnector(BaseConnector):
 			"full_text": summary,  # RSS only has summary
 			"original_url": item.get("link", ""),
 			"regulatory_body": "SEC",
-			"document_type": doc_type
+			"document_type": doc_type,
 		}
 
 	def _extract_date(self, item):
@@ -142,7 +140,7 @@ class SECEdgarConnector(BaseConnector):
 		Returns:
 			date: Publication date or None
 		"""
-		if hasattr(item, 'published_parsed') and item.published_parsed:
+		if hasattr(item, "published_parsed") and item.published_parsed:
 			try:
 				return getdate(
 					f"{item.published_parsed.tm_year}-"
@@ -152,7 +150,7 @@ class SECEdgarConnector(BaseConnector):
 			except Exception:
 				pass
 
-		if hasattr(item, 'updated_parsed') and item.updated_parsed:
+		if hasattr(item, "updated_parsed") and item.updated_parsed:
 			try:
 				return getdate(
 					f"{item.updated_parsed.tm_year}-"
@@ -235,8 +233,7 @@ class SECEdgarConnector(BaseConnector):
 
 		except Exception as e:
 			frappe.log_error(
-				message=f"Error fetching full document: {str(e)}",
-				title=_("SEC Document Fetch Error")
+				message=f"Error fetching full document: {str(e)}", title=_("SEC Document Fetch Error")
 			)
 
 		return ""

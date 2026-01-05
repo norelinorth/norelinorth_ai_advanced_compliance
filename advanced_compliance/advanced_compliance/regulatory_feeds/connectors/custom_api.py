@@ -47,26 +47,21 @@ class CustomAPIConnector(BaseConnector):
 			import requests
 		except ImportError:
 			frappe.throw(
-				_("requests package is required for Custom API. "
-				  "Please install it with: pip install requests")
+				_(
+					"requests package is required for Custom API. "
+					"Please install it with: pip install requests"
+				)
 			)
 
 		try:
-			headers = {
-				"User-Agent": self.user_agent,
-				"Accept": "application/json"
-			}
+			headers = {"User-Agent": self.user_agent, "Accept": "application/json"}
 
 			# Add API key if configured
 			if self.feed_source.api_key:
 				api_key = self.feed_source.get_password("api_key")
 				headers["Authorization"] = f"Bearer {api_key}"
 
-			response = requests.get(
-				self.url,
-				headers=headers,
-				timeout=30
-			)
+			response = requests.get(self.url, headers=headers, timeout=30)
 			response.raise_for_status()
 			data = response.json()
 
@@ -120,34 +115,16 @@ class CustomAPIConnector(BaseConnector):
 		title = item.get("title") or item.get("name") or item.get("subject", "")
 
 		# Extract summary with fallbacks
-		summary = (
-			item.get("summary")
-			or item.get("description")
-			or item.get("excerpt", "")
-		)[:2000]
+		summary = (item.get("summary") or item.get("description") or item.get("excerpt", ""))[:2000]
 
 		# Extract full text with fallbacks
-		full_text = (
-			item.get("content")
-			or item.get("body")
-			or item.get("full_text")
-			or summary
-		)
+		full_text = item.get("content") or item.get("body") or item.get("full_text") or summary
 
 		# Extract URL with fallbacks
-		url = (
-			item.get("url")
-			or item.get("link")
-			or item.get("href", "")
-		)
+		url = item.get("url") or item.get("link") or item.get("href", "")
 
 		# Extract document type with fallbacks
-		doc_type = (
-			item.get("type")
-			or item.get("document_type")
-			or item.get("category")
-			or "Other"
-		)
+		doc_type = item.get("type") or item.get("document_type") or item.get("category") or "Other"
 
 		return {
 			"title": title[:255],
@@ -156,5 +133,5 @@ class CustomAPIConnector(BaseConnector):
 			"full_text": full_text,
 			"original_url": url,
 			"regulatory_body": self.feed_source.regulatory_body,
-			"document_type": doc_type
+			"document_type": doc_type,
 		}

@@ -10,10 +10,11 @@ This test file covers all bug fixes from BUGS_AND_FIXES.md:
 - Security improvements
 """
 
-import frappe
 import unittest
-from unittest.mock import patch, MagicMock
-from frappe.utils import flt, cint, nowdate, add_days
+from unittest.mock import MagicMock, patch
+
+import frappe
+from frappe.utils import add_days, cint, flt, nowdate
 
 
 class TestSQLInjectionPrevention(unittest.TestCase):
@@ -30,27 +31,19 @@ class TestSQLInjectionPrevention(unittest.TestCase):
 		Bug: semantic_search.py line 253 - SQL injection via unvalidated fields
 		Fix: Added field validation using frappe.get_meta()
 		"""
-		from advanced_compliance.advanced_compliance.intelligence.search.semantic_search import (
-			SemanticSearch
-		)
+		from advanced_compliance.advanced_compliance.intelligence.search.semantic_search import SemanticSearch
 
 		search = SemanticSearch()
 
 		# Test with valid query
-		results = search._text_search_fallback(
-			query="test",
-			doctypes=["Control Activity"],
-			limit=10
-		)
+		results = search._text_search_fallback(query="test", doctypes=["Control Activity"], limit=10)
 
 		# Should return results without error (no SQL injection)
 		self.assertIsInstance(results, list)
 
 		# Test with invalid doctype (should handle gracefully)
 		results = search._text_search_fallback(
-			query="test'; DROP TABLE tabControl; --",
-			doctypes=["NonExistentDocType"],
-			limit=10
+			query="test'; DROP TABLE tabControl; --", doctypes=["NonExistentDocType"], limit=10
 		)
 
 		# Should return empty list, not error
@@ -70,17 +63,18 @@ class TestSQLInjectionPrevention(unittest.TestCase):
 		from advanced_compliance.patches import add_performance_indexes
 
 		# Verify the module has the safe implementation
-		self.assertTrue(hasattr(add_performance_indexes, 'execute'))
+		self.assertTrue(hasattr(add_performance_indexes, "execute"))
 
 		# Check that the execute function doesn't contain raw f-string SQL
 		import inspect
+
 		source = inspect.getsource(add_performance_indexes.execute)
 
 		# Should use frappe.db.add_index (safe method)
-		self.assertIn('frappe.db.add_index', source)
+		self.assertIn("frappe.db.add_index", source)
 
 		# Should NOT use raw CREATE INDEX (unsafe)
-		self.assertNotIn('CREATE INDEX IF NOT EXISTS', source)
+		self.assertNotIn("CREATE INDEX IF NOT EXISTS", source)
 
 
 class TestHardcodedFallbackRemoval(unittest.TestCase):
@@ -103,19 +97,21 @@ class TestHardcodedFallbackRemoval(unittest.TestCase):
 		Fix: Uses Compliance Settings.default_days_never_tested
 		"""
 		from advanced_compliance.advanced_compliance.intelligence.prediction.risk_predictor import (
-			RiskPredictor
+			RiskPredictor,
 		)
 
 		predictor = RiskPredictor()
 
 		# Create a test control with no test history
-		control = frappe.get_doc({
-			"doctype": "Control Activity",
-			"control_id": "TEST-CONTROL-001",
-			"control_title": "Test Control",
-			"status": "Active",
-			"last_test_date": None  # Never tested
-		})
+		control = frappe.get_doc(
+			{
+				"doctype": "Control Activity",
+				"control_id": "TEST-CONTROL-001",
+				"control_title": "Test Control",
+				"status": "Active",
+				"last_test_date": None,  # Never tested
+			}
+		)
 
 		# Configure settings with specific value
 		settings = frappe.get_single("Compliance Settings")
@@ -144,7 +140,7 @@ class TestHardcodedFallbackRemoval(unittest.TestCase):
 		Fix: Returns None, caller handles with configured penalty
 		"""
 		from advanced_compliance.advanced_compliance.intelligence.prediction.risk_predictor import (
-			RiskPredictor
+			RiskPredictor,
 		)
 
 		predictor = RiskPredictor()
@@ -171,7 +167,7 @@ class TestNullAndDivisionSafety(unittest.TestCase):
 		Fix: Added flt(value or 0) for NULL safety
 		"""
 		from advanced_compliance.advanced_compliance.intelligence.anomaly.compliance_anomaly import (
-			ComplianceAnomalyDetector
+			ComplianceAnomalyDetector,
 		)
 
 		# Ensure AI Provider Settings exist
@@ -195,7 +191,7 @@ class TestNullAndDivisionSafety(unittest.TestCase):
 		Fix: Added check for zero/None denominator and infinity result
 		"""
 		from advanced_compliance.advanced_compliance.intelligence.anomaly.compliance_anomaly import (
-			ComplianceAnomalyDetector
+			ComplianceAnomalyDetector,
 		)
 
 		# Ensure AI Provider Settings exist
@@ -206,7 +202,7 @@ class TestNullAndDivisionSafety(unittest.TestCase):
 		detector = ComplianceAnomalyDetector()
 
 		# Test with mock data where previous_count is 0
-		with patch.object(frappe.db, 'sql') as mock_sql:
+		with patch.object(frappe.db, "sql") as mock_sql:
 			# Mock response: COUNT(*) returns [(0,)] - previous period has 0 deficiencies
 			# This would cause division by zero without proper handling
 			mock_sql.return_value = [(0,)]
@@ -267,19 +263,18 @@ class TestPermissionChecks(unittest.TestCase):
 		Bug: query_engine.py line 344 - frappe.db.count bypasses permissions
 		Fix: Uses frappe.get_all which respects row-level permissions
 		"""
-		from advanced_compliance.advanced_compliance.intelligence.nlp.query_engine import (
-			NLQueryEngine
-		)
+		from advanced_compliance.advanced_compliance.intelligence.nlp.query_engine import NLQueryEngine
 
 		engine = NLQueryEngine()
 
 		# Test count query uses frappe.get_all (not frappe.db.count)
 		# We verify this by checking the implementation
 		import inspect
+
 		source = inspect.getsource(engine._execute_rule_based_query)
 
 		# Should use frappe.get_all for counts
-		self.assertIn('frappe.get_all', source)
+		self.assertIn("frappe.get_all", source)
 
 		# Should NOT use frappe.db.count
 		# Note: This is a code inspection test; actual permission testing
@@ -300,34 +295,33 @@ class TestSemanticSearchSecurity(unittest.TestCase):
 		Bug: semantic_search.py line 189 - accesses private _get_api_key()
 		Fix: Uses public get_api_credentials() method instead
 		"""
-		from advanced_compliance.advanced_compliance.intelligence.search.semantic_search import (
-			SemanticSearch
-		)
+		from advanced_compliance.advanced_compliance.intelligence.search.semantic_search import SemanticSearch
 
 		# Verify the class has the OpenAI embedding methods (functionality restored)
 		search = SemanticSearch()
 
 		# Should have _openai_embedding method (functionality restored)
-		self.assertTrue(hasattr(search, '_openai_embedding'))
+		self.assertTrue(hasattr(search, "_openai_embedding"))
 
 		# Should have _generate_api_embedding method (functionality restored)
-		self.assertTrue(hasattr(search, '_generate_api_embedding'))
+		self.assertTrue(hasattr(search, "_generate_api_embedding"))
 
 		# Should have _get_ai_provider method
-		self.assertTrue(hasattr(search, '_get_ai_provider'))
+		self.assertTrue(hasattr(search, "_get_ai_provider"))
 
 		# Should still have _generate_local_embedding method
-		self.assertTrue(hasattr(search, '_generate_local_embedding'))
+		self.assertTrue(hasattr(search, "_generate_local_embedding"))
 
 		# Verify the code uses public method, not private
 		import inspect
+
 		source = inspect.getsource(search._openai_embedding)
 
 		# Should use public get_api_credentials() method
-		self.assertIn('get_api_credentials', source)
+		self.assertIn("get_api_credentials", source)
 
 		# Should NOT use private _get_api_key() method
-		self.assertNotIn('_get_api_key', source)
+		self.assertNotIn("_get_api_key", source)
 
 	def test_no_private_api_key_access(self):
 		"""
@@ -335,17 +329,18 @@ class TestSemanticSearchSecurity(unittest.TestCase):
 
 		The code should use public get_api_credentials() instead of private _get_api_key()
 		"""
-		from advanced_compliance.advanced_compliance.intelligence.search import semantic_search
-
 		# Check source code doesn't contain private method access
 		import inspect
+
+		from advanced_compliance.advanced_compliance.intelligence.search import semantic_search
+
 		source = inspect.getsource(semantic_search)
 
 		# Should NOT access _get_api_key (private method)
-		self.assertNotIn('_get_api_key', source)
+		self.assertNotIn("_get_api_key", source)
 
 		# Should use public get_api_credentials method instead
-		self.assertIn('get_api_credentials', source)
+		self.assertIn("get_api_credentials", source)
 
 
 class TestConfigurationFields(unittest.TestCase):
@@ -364,7 +359,7 @@ class TestConfigurationFields(unittest.TestCase):
 		settings = frappe.get_single("Compliance Settings")
 
 		# Should have the new field
-		self.assertTrue(hasattr(settings, 'default_days_never_tested'))
+		self.assertTrue(hasattr(settings, "default_days_never_tested"))
 
 		# Default should be 365
 		if not settings.default_days_never_tested:
@@ -386,7 +381,7 @@ class TestConfigurationFields(unittest.TestCase):
 		settings = frappe.get_single("AI Provider Settings")
 
 		# Should have the new field
-		self.assertTrue(hasattr(settings, 'no_test_history_penalty'))
+		self.assertTrue(hasattr(settings, "no_test_history_penalty"))
 
 		# Default should be 0.1
 		if not settings.no_test_history_penalty:

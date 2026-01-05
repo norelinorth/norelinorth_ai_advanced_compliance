@@ -67,6 +67,8 @@ ignore = [
     "B905",  # zip strict
     "E402",  # module level import not at top
     "F401",  # unused imports (common in __init__.py)
+    "W191",  # indentation contains tabs (Frappe standard)
+    "E101",  # indentation contains mixed spaces and tabs
 ]
 
 [tool.ruff.lint.isort]
