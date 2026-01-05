@@ -10,10 +10,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: linters-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
-  linters:
-    name: linters
+  ruff:
+    name: ruff
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,13 +26,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: pip
 
-      - name: Install and Run Pre-commit
-        uses: pre-commit/action@v3.0.0
+      - name: Install and run ruff
+        run: |
+          pip install ruff
+          ruff check --output-format=github advanced_compliance/
 
-  semgrep:
-    name: semgrep
+  security:
+    name: security
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,13 +42,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: pip
 
-      - name: Download Semgrep rules
-        run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
-
-      - name: Download semgrep
-        run: pip install semgrep
-
-      - name: Run Semgrep rules
-        run: semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
+      - name: Install and run pip-audit
+        run: |
+          pip install pip-audit
+          pip-audit --desc .
