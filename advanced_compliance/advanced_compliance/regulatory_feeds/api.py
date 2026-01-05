@@ -196,11 +196,16 @@ def get_pending_actions(user=None):
 		order_by="priority desc, due_date asc",
 	)
 
-	# Enrich with control names
-	for assessment in assessments:
-		assessment["control_name"] = frappe.db.get_value(
-			"Control Activity", assessment["control_activity"], "control_name"
-		)
+	# Enrich with control names - bulk fetch to avoid N+1 queries
+	if assessments:
+		control_ids = [a["control_activity"] for a in assessments if a.get("control_activity")]
+		if control_ids:
+			controls = frappe.get_all(
+				"Control Activity", filters={"name": ["in", control_ids]}, fields=["name", "control_name"]
+			)
+			control_map = {c.name: c.control_name for c in controls}
+			for assessment in assessments:
+				assessment["control_name"] = control_map.get(assessment.get("control_activity"))
 
 	return assessments
 

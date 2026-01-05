@@ -95,10 +95,14 @@ class AutoSuggest:
 				query=search_text, doctypes=["Control Activity"], limit=limit * 2
 			)
 
+			# Convert to sets for O(1) lookup instead of O(n)
+			existing_set = set(existing_controls)
+			suggestion_ids = {s["control_id"] for s in suggestions}
+
 			for result in similar_controls:
-				if result["document"] in existing_controls:
+				if result["document"] in existing_set:
 					continue
-				if any(s["control_id"] == result["document"] for s in suggestions):
+				if result["document"] in suggestion_ids:
 					continue
 
 				control = frappe.get_doc("Control Activity", result["document"])
@@ -135,11 +139,19 @@ class AutoSuggest:
 			fields=["source_entity"],
 		)
 
-		control_ids = []
-		for rel in relationships:
-			control_id = frappe.db.get_value("Compliance Graph Entity", rel.source_entity, "entity_id")
-			if control_id:
-				control_ids.append(control_id)
+		# Bulk fetch control IDs to avoid N+1 queries
+		if not relationships:
+			return []
+
+		entity_names = [rel.source_entity for rel in relationships]
+		entities = frappe.get_all(
+			"Compliance Graph Entity",
+			filters={"name": ["in", entity_names]},
+			fields=["name", "entity_id"],
+		)
+
+		# Build control_ids list from bulk query results
+		control_ids = [e.entity_id for e in entities if e.entity_id]
 
 		return control_ids
 

@@ -442,15 +442,62 @@ class GraphQueryEngine:
 				center_entity, relationship_types=relationship_types, max_depth=depth, include_start=True
 			)
 
-			for entity in traversal["entities"]:
-				entity_doc = frappe.get_doc("Compliance Graph Entity", entity["name"])
-				nodes.append(entity_doc.to_vis_node())
-				entity_map[entity["name"]] = True
+			# Bulk load entity data to avoid N+1 queries
+			entity_names = [e["name"] for e in traversal["entities"]]
+			if entity_names:
+				entities_data = frappe.get_all(
+					"Compliance Graph Entity",
+					filters={"name": ["in", entity_names]},
+					fields=[
+						"name",
+						"entity_label",
+						"entity_id",
+						"entity_type",
+						"node_color",
+						"node_size",
+						"entity_doctype",
+					],
+				)
+				for entity in entities_data:
+					nodes.append(
+						{
+							"id": entity.name,
+							"label": entity.entity_label or entity.entity_id,
+							"title": f"{entity.entity_type}: {entity.entity_label}",
+							"group": entity.entity_type,
+							"color": entity.node_color,
+							"size": entity.node_size,
+							"entity_type": entity.entity_type,
+							"entity_doctype": entity.entity_doctype,
+							"entity_id": entity.entity_id,
+						}
+					)
+					entity_map[entity.name] = True
 
-			for rel in traversal["relationships"]:
-				if rel["source"] in entity_map and rel["target"] in entity_map:
-					rel_doc = frappe.get_doc("Compliance Graph Relationship", rel["name"])
-					edges.append(rel_doc.to_vis_edge())
+			# Bulk load relationship data to avoid N+1 queries
+			rel_names = [
+				r["name"]
+				for r in traversal["relationships"]
+				if r["source"] in entity_map and r["target"] in entity_map
+			]
+			if rel_names:
+				rels_data = frappe.get_all(
+					"Compliance Graph Relationship",
+					filters={"name": ["in", rel_names]},
+					fields=["name", "source_entity", "target_entity", "relationship_type", "weight"],
+				)
+				for rel in rels_data:
+					edges.append(
+						{
+							"id": rel.name,
+							"from": rel.source_entity,
+							"to": rel.target_entity,
+							"label": rel.relationship_type,
+							"arrows": "to",
+							"color": "#7f8c8d",
+							"width": max(1, int(rel.weight * 3)) if rel.weight else 2,
+						}
+					)
 
 		else:
 			# Get entities with optional filter
@@ -458,13 +505,36 @@ class GraphQueryEngine:
 			if entity_type:
 				filters["entity_type"] = entity_type
 
+			# Load all needed fields to avoid N+1 queries
 			entities = frappe.get_all(
-				"Compliance Graph Entity", filters=filters, fields=["name"], limit=max_nodes
+				"Compliance Graph Entity",
+				filters=filters,
+				fields=[
+					"name",
+					"entity_label",
+					"entity_id",
+					"entity_type",
+					"node_color",
+					"node_size",
+					"entity_doctype",
+				],
+				limit=max_nodes,
 			)
 
 			for entity in entities:
-				entity_doc = frappe.get_doc("Compliance Graph Entity", entity.name)
-				nodes.append(entity_doc.to_vis_node())
+				nodes.append(
+					{
+						"id": entity.name,
+						"label": entity.entity_label or entity.entity_id,
+						"title": f"{entity.entity_type}: {entity.entity_label}",
+						"group": entity.entity_type,
+						"color": entity.node_color,
+						"size": entity.node_size,
+						"entity_type": entity.entity_type,
+						"entity_doctype": entity.entity_doctype,
+						"entity_id": entity.entity_id,
+					}
+				)
 				entity_map[entity.name] = True
 
 			# Get relationships
