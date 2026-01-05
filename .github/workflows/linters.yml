@@ -46,4 +46,4 @@ jobs:
       - name: Install and run pip-audit
         run: |
           pip install pip-audit
-          pip-audit --desc .
+          pip-audit
