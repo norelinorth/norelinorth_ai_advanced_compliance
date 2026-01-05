@@ -58,7 +58,7 @@ jobs:
 
       - name: Check for valid Python & Merge Conflicts
         run: |
-          python -m py_compile -q -j 0 .
+          python -m compileall -q .
           if grep -lr --exclude-dir=node_modules "^<<<<<<< " .; then
               echo "Found merge conflicts"
               exit 1
