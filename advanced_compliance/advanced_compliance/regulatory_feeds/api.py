@@ -272,9 +272,14 @@ def get_compliance_dashboard_data():
 
 	from frappe.utils import add_days, nowdate
 
-	# Count by status
-	updates_by_status = frappe.get_all(
-		"Regulatory Update", fields=["status", "count(*) as count"], group_by="status"
+	# Count by status (using frappe.db.sql for v15/v16 compatibility)
+	updates_by_status = frappe.db.sql(
+		"""
+		SELECT status, COUNT(*) as count
+		FROM `tabRegulatory Update`
+		GROUP BY status
+		""",
+		as_dict=True,
 	)
 
 	# Pending assessments

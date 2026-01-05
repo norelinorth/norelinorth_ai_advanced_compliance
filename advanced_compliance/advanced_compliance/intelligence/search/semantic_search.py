@@ -271,7 +271,12 @@ class SemanticSearch:
 			fields = self.SEARCHABLE_DOCTYPES[doctype]
 
 			# Validate all fields exist in the doctype (prevent SQL injection)
-			meta = frappe.get_meta(doctype)
+			try:
+				meta = frappe.get_meta(doctype)
+			except frappe.DoesNotExistError:
+				# Skip doctypes that don't exist in this installation
+				continue
+
 			validated_fields = []
 			for field in fields:
 				if meta.has_field(field):
