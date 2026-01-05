@@ -6,6 +6,7 @@ Internal Control Framework - 17 Principles across 5 Components.
 """
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -19,4 +20,4 @@ class COSOPrinciple(Document):
 	def validate_principle_number(self):
 		"""Ensure principle number is between 1 and 17."""
 		if self.principle_number < 1 or self.principle_number > 17:
-			frappe.throw(frappe._("COSO Principle number must be between 1 and 17"))
+			frappe.throw(_("COSO Principle number must be between 1 and 17"))

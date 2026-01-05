@@ -170,6 +170,10 @@ def get_help(doctype, field=None):
 	Returns:
 		dict: Help content
 	"""
+	# Check if user has permission to access the DocType
+	if not frappe.has_permission(doctype, "read"):
+		frappe.throw(_("Insufficient permissions to view help for {0}").format(doctype))
+
 	help_data = HELP_TOPICS.get(doctype, {})
 
 	if not help_data:

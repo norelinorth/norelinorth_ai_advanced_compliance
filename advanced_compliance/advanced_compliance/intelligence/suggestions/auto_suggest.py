@@ -35,7 +35,11 @@ class AutoSuggest:
 			)
 
 			return get_ai_settings()
-		except Exception:
+		except Exception as e:
+			frappe.log_error(
+				message=f"Failed to load AI settings: {str(e)}\n{frappe.get_traceback()}",
+				title=_("Auto Suggest Settings Error"),
+			)
 			return None
 
 	def suggest_controls_for_risk(self, risk_id, limit=5):

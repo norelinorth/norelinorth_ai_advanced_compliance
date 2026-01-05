@@ -197,8 +197,9 @@ class ComplianceAnomalyDetector:
 				continue
 
 			# Safe to access .passed since we validated objects exist
-			recent_passed = flt(recent.passed or 0)  # Handle NULL from SUM
-			previous_passed = flt(previous.passed or 0)
+			# flt() automatically converts NULL/None to 0.0
+			recent_passed = flt(recent.passed)
+			previous_passed = flt(previous.passed)
 
 			recent_rate = recent_passed / recent_total
 			previous_rate = previous_passed / previous_total

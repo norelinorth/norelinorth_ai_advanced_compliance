@@ -5,6 +5,7 @@ Single DocType for app-wide configuration.
 """
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -19,4 +20,4 @@ class ComplianceSettings(Document):
 		"""Ensure high risk threshold is less than critical threshold."""
 		if self.high_risk_threshold and self.critical_risk_threshold:
 			if self.high_risk_threshold >= self.critical_risk_threshold:
-				frappe.throw(frappe._("High Risk Threshold must be less than Critical Risk Threshold"))
+				frappe.throw(_("High Risk Threshold must be less than Critical Risk Threshold"))
