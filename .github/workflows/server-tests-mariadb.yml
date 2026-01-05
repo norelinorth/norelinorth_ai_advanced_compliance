@@ -27,21 +27,11 @@ jobs:
           - frappe-version: "version-15"
             python-version: "3.11"
             node-version: "18"
-            container: 1
-          - frappe-version: "version-15"
-            python-version: "3.11"
-            node-version: "18"
-            container: 2
           - frappe-version: "develop"
             python-version: "3.14"
             node-version: "24"
-            container: 1
-          - frappe-version: "develop"
-            python-version: "3.14"
-            node-version: "24"
-            container: 2
 
-    name: Python Tests (Frappe ${{ matrix.frappe-version }}, Python ${{ matrix.python-version }}, ${{ matrix.container }}/2)
+    name: Python Tests (Frappe ${{ matrix.frappe-version }}, Python ${{ matrix.python-version }}, Node ${{ matrix.node-version }})
 
     services:
       mariadb:
@@ -144,12 +134,11 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           bench --site test_site set-config allow_tests true
-          bench --site test_site run-tests --app advanced_compliance --coverage --split ${{ matrix.container }}/2
+          bench --site test_site run-tests --app advanced_compliance --coverage
         env:
           TYPE: server
 
       - name: Upload coverage data
-        if: matrix.container == 1
         uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: false
