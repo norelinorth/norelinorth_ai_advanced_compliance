@@ -216,7 +216,7 @@ class GraphExplorer {
       frappe.show_progress(__("Loading Graph"), 70, 100, __("Rendering..."));
 
       if (data.message) {
-        await this.render_graph(data.message);
+        this.render_graph(data.message);
       }
 
       frappe.hide_progress();
@@ -231,108 +231,81 @@ class GraphExplorer {
   }
 
   render_graph(data) {
-    return new Promise((resolve) => {
-      const container = document.getElementById("graph-container");
+    const container = document.getElementById("graph-container");
 
-      // Create datasets
-      this.nodes = new vis.DataSet(data.nodes);
-      this.edges = new vis.DataSet(data.edges);
+    // Create datasets
+    this.nodes = new vis.DataSet(data.nodes);
+    this.edges = new vis.DataSet(data.edges);
 
-      console.log(
-        `[Graph] Rendering ${data.node_count} nodes, ${data.edge_count} edges`,
-      );
+    console.log(
+      `[Graph] Rendering ${data.node_count} nodes, ${data.edge_count} edges (physics disabled)`,
+    );
 
-      // Network options
-      const options = {
-        nodes: {
-          shape: "dot",
-          scaling: {
-            min: 10,
-            max: 30,
-          },
-          font: {
-            size: 12,
-            face: "Inter, -apple-system, system-ui, sans-serif",
-          },
+    // Network options - PHYSICS DISABLED for instant rendering
+    const options = {
+      nodes: {
+        shape: "dot",
+        scaling: {
+          min: 10,
+          max: 30,
         },
-        edges: {
-          width: 1,
-          color: { inherit: "from" },
-          smooth: {
-            type: "continuous",
-          },
-          arrows: {
-            to: { enabled: true, scaleFactor: 0.5 },
-          },
+        font: {
+          size: 12,
+          face: "Inter, -apple-system, system-ui, sans-serif",
         },
-        physics: {
-          enabled: true,
-          stabilization: {
-            enabled: true,
-            iterations: 50, // Reduced from 100 for faster rendering
-            updateInterval: 25,
-          },
-          barnesHut: {
-            gravitationalConstant: -2000,
-            springLength: 150,
-            springConstant: 0.04,
-          },
+      },
+      edges: {
+        width: 1,
+        color: { inherit: "from" },
+        smooth: {
+          type: "continuous",
         },
-        interaction: {
-          hover: true,
-          tooltipDelay: 200,
-          hideEdgesOnDrag: true,
+        arrows: {
+          to: { enabled: true, scaleFactor: 0.5 },
         },
-      };
+      },
+      physics: {
+        enabled: false, // DISABLED: Instant rendering, no stabilization needed
+      },
+      interaction: {
+        hover: true,
+        tooltipDelay: 200,
+        hideEdgesOnDrag: true,
+      },
+    };
 
-      // Create network
-      this.network = new vis.Network(
-        container,
-        { nodes: this.nodes, edges: this.edges },
-        options,
-      );
+    // Create network (renders instantly with physics disabled)
+    this.network = new vis.Network(
+      container,
+      { nodes: this.nodes, edges: this.edges },
+      options,
+    );
 
-      let stabilized = false;
+    console.log("[Graph] Rendering complete (instant - no physics)");
 
-      // Wait for physics stabilization to complete
-      this.network.once("stabilizationIterationsDone", () => {
-        console.log("[Graph] Stabilization complete");
-        stabilized = true;
-        resolve();
-      });
-
-      // Fallback timeout: force resolve after 5 seconds
-      setTimeout(() => {
-        if (!stabilized) {
-          console.warn("[Graph] Stabilization timeout - forcing dialog close");
-          resolve();
-        }
-      }, 5000);
-
-      // Event handlers
-      this.network.on("click", (params) => {
-        if (params.nodes.length > 0) {
-          this.on_node_click(params.nodes[0]);
-        } else if (params.edges.length > 0) {
-          this.on_edge_click(params.edges[0]);
-        } else {
-          this.clear_selection();
-        }
-      });
-
-      this.network.on("doubleClick", (params) => {
-        if (params.nodes.length > 0) {
-          this.on_node_double_click(params.nodes[0]);
-        }
-      });
-
-      // Update node count
-      this.page.set_secondary_action(
-        `${data.node_count} ${__("nodes")}, ${data.edge_count} ${__("edges")}`,
-        null,
-        "info-sign",
-      );
+    // Event handlers
+    this.network.on("click", (params) => {
+      if (params.nodes.length > 0) {
+        this.on_node_click(params.nodes[0]);
+      } else if (params.edges.length > 0) {
+        this.on_edge_click(params.edges[0]);
+      } else {
+        this.clear_selection();
+      }
     });
+
+    this.network.on("doubleClick", (params) => {
+      if (params.nodes.length > 0) {
+        this.on_node_double_click(params.nodes[0]);
+      }
+    });
+
+    // Update node count
+    this.page.set_secondary_action(
+      `${data.node_count} ${__("nodes")}, ${data.edge_count} ${__("edges")}`,
+      null,
+      "info-sign",
+    );
   }
 
   async on_node_click(node_id) {
