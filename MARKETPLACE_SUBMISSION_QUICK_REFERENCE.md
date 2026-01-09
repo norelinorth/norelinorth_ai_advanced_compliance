@@ -13,7 +13,7 @@ Noreli North AI Advanced Compliance
 
 ### Documentation URL
 ```
-https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance#readme
 ```
 
 ### Website URL

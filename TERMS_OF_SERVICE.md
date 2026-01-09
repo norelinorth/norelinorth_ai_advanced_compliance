@@ -104,7 +104,7 @@ TO THE MAXIMUM EXTENT PERMITTED BY LAW:
 Free community support is available via:
 - GitHub Issues: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/issues
 - GitHub Discussions: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/discussions
-- Documentation: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
+- Documentation: https://github.com/norelinorth/norelinorth_ai_advanced_compliance#readme
 
 ### 9.2 No Guaranteed Support
 - Support is provided on a best-effort basis

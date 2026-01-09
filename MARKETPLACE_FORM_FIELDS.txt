@@ -10,7 +10,7 @@ Title:
 Noreli North AI Advanced Compliance
 
 Documentation:
-https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance#readme
 
 Website:
 https://github.com/norelinorth/norelinorth_ai_advanced_compliance
@@ -51,7 +51,6 @@ Suggested screenshots:
 5. 05_test_execution.png - Test Execution workflow
 6. 06_coverage_analysis.png - Coverage Analysis report
 7. 07_ai_queries.png - AI query interface (optional)
-8. 08_regulatory_feeds.png - Regulatory feed dashboard (optional)
 
 Generate demo data first:
 bench --site erpnext.local execute "advanced_compliance.advanced_compliance.demo.finance_accounting_data.setup_finance_accounting_data"
