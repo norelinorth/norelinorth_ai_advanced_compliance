@@ -56,19 +56,6 @@ Transform compliance from a periodic checkbox exercise into a continuous, intell
 3. Search for "Noreli North Advanced Compliance"
 4. Click Install
 
-### Manual Installation
-
-```bash
-# Get the app
-bench get-app https://github.com/norelinorth/advanced_compliance.git
-
-# Install on your site
-bench --site your-site.local install-app advanced_compliance
-
-# Run migrations
-bench --site your-site.local migrate
-```
-
 ## Requirements
 
 - Frappe Framework v15.0.0+
