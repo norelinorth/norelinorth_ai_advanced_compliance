@@ -262,30 +262,32 @@ class TestDemoDataGenerator(unittest.TestCase):
 		frappe.db.rollback()
 
 	def test_generate_demo_data(self):
-		"""Test demo data generation."""
-		from advanced_compliance.advanced_compliance.demo.generate_demo_data import generate_demo_data
+		"""Test demo data generation (finance & accounting)."""
+		from advanced_compliance.advanced_compliance.demo.finance_accounting_data import (
+			setup_finance_accounting_data,
+		)
 
-		result = generate_demo_data()
+		result = setup_finance_accounting_data()
 
-		self.assertEqual(result["status"], "success")
-		self.assertIn("results", result)
-		self.assertGreater(result["results"]["controls"], 0)
-		self.assertGreater(result["results"]["risks"], 0)
+		self.assertIn("controls", result)
+		self.assertIn("risks", result)
+		self.assertGreater(result["controls"], 0)
+		self.assertGreater(result["risks"], 0)
 
 	def test_clear_demo_data(self):
-		"""Test demo data clearing."""
-		from advanced_compliance.advanced_compliance.demo.generate_demo_data import (
-			clear_demo_data,
-			generate_demo_data,
+		"""Test demo data clearing (finance & accounting)."""
+		from advanced_compliance.advanced_compliance.demo.finance_accounting_data import (
+			clear_finance_accounting_data,
+			setup_finance_accounting_data,
 		)
 
 		# First generate some data
-		generate_demo_data()
+		setup_finance_accounting_data()
 
 		# Then clear it
-		result = clear_demo_data()
+		result = clear_finance_accounting_data()
 
-		self.assertEqual(result["status"], "success")
+		self.assertIn("controls", result)
 
 
 class TestTranslations(unittest.TestCase):
