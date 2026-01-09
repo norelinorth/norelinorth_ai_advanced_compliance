@@ -51,7 +51,7 @@ Noreli North AI Advanced Compliance
 
 #### Documentation
 ```
-https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance#readme
 ```
 
 #### Website
@@ -100,7 +100,6 @@ You need to capture screenshots before final submission. See `SCREENSHOT_GUIDE.m
 5. **Test Execution** - Test workflow with evidence
 6. **Coverage Analysis** - Gap analysis report
 7. **AI Queries** - Natural language search (optional)
-8. **Regulatory Feeds** - Feed dashboard (optional)
 
 ### How to Generate Demo Data
 ```bash

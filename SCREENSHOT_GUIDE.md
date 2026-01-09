@@ -161,20 +161,6 @@ Attachments: approval_signatures.pdf
 
 ---
 
-### 8. Regulatory Feed Dashboard (OPTIONAL)
-**Filename**: `08_regulatory_feeds.png`
-
-**What to show**:
-- List of regulatory feed sources
-- Recent updates from SEC, PCAOB, etc.
-- Sync status and impact mapping
-
-**How to capture**:
-1. Navigate to Regulatory Feed Sources
-2. Show configured feeds with last sync time
-3. Display recent regulatory updates
-4. Capture list view with details
-
 ---
 
 ## Screenshot Best Practices
@@ -260,8 +246,7 @@ For optimal marketplace presentation, arrange screenshots in this order:
 2. **Core Features**: Control Activity, Risk Register (primary use cases)
 3. **Workflows**: Test Execution (how users work with the app)
 4. **Advanced Features**: Knowledge Graph, AI Queries (differentiators)
-5. **Integrations**: Regulatory Feeds (value-adds)
-6. **Reports**: Coverage Analysis (business value)
+5. **Reports**: Coverage Analysis (business value)
 
 ---
 

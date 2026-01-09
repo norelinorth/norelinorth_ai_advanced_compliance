@@ -18,7 +18,7 @@ Noreli North AI Advanced Compliance
 
 #### Documentation
 ```
-https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance#readme
 ```
 
 #### Website
@@ -86,12 +86,6 @@ A comprehensive GRC (Governance, Risk & Compliance) platform built natively on F
 - **Natural Language Queries** - Ask questions in plain English
 - **Semantic Search** - Find relevant controls and risks using natural language
 - **Auto-Suggestions** - Intelligent recommendations for control improvements
-
-### Regulatory Feeds
-- **SEC EDGAR Integration** - Automatic SEC filing ingestion
-- **PCAOB Updates** - Audit standard change tracking
-- **RSS Feed Support** - Monitor any regulatory source
-- **Impact Assessment** - Auto-map regulatory changes to affected controls
 
 ### Evidence Management
 - **Automated Capture** - Rule-based evidence collection from ERPNext transactions
@@ -262,7 +256,7 @@ bench --site your-site.local install-app advanced_compliance
 
 ## Support Channels
 
-- **Documentation**: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
+- **Documentation**: https://github.com/norelinorth/norelinorth_ai_advanced_compliance#readme
 - **Bug Reports**: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/issues
 - **Feature Requests**: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/discussions
 - **Security Issues**: Report via GitHub Security Advisories
