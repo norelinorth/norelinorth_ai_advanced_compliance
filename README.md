@@ -34,12 +34,6 @@ Transform compliance from a periodic checkbox exercise into a continuous, intell
 - **Risk Prediction** - ML-based control failure probability
 - **Auto-Suggestions** - Intelligent recommendations for improvements
 
-### Regulatory Feeds
-- **SEC EDGAR Integration** - Automatic SEC filing ingestion
-- **PCAOB Updates** - Audit standard change tracking
-- **RSS Feed Support** - Custom regulatory source monitoring
-- **Impact Assessment** - Auto-map regulatory changes to controls
-
 ### Evidence Management
 - **Automated Capture** - Rule-based evidence collection from ERPNext
 - **Document Linking** - Attach files to controls and tests
@@ -98,12 +92,6 @@ bench --site your-site.local migrate
 2. Enable desired AI features (anomaly detection, NL queries, etc.)
 3. AI features work without external providers using rule-based fallbacks
 
-### Regulatory Feeds (Optional)
-
-1. Create **Regulatory Feed Sources** for your jurisdictions
-2. Configure sync frequency (Hourly, Daily, Weekly)
-3. Monitor updates in the **Regulatory Updates** list
-
 ## Demo Data
 
 Generate sample Finance & Accounting compliance data for testing:
@@ -139,8 +127,6 @@ bench --site your-site.local execute "advanced_compliance.advanced_compliance.ut
 | Compliance Framework | Framework definitions |
 | Framework Requirement | Framework-specific requirements |
 | Evidence Capture Rule | Automated evidence collection rules |
-| Regulatory Feed Source | External regulatory feed configuration |
-| Regulatory Update | Regulatory changes and updates |
 
 ## API Endpoints
 
@@ -156,10 +142,6 @@ All API endpoints are accessible via `/api/method/advanced_compliance.advanced_c
 - `predict_control_risk` - Predict control failure probability
 - `get_control_suggestions` - Get control recommendations
 - `detect_compliance_anomalies` - Run anomaly detection
-
-### Regulatory Feeds
-- `sync_feed` - Manually sync a regulatory feed
-- `get_regulatory_timeline` - Get upcoming regulatory deadlines
 
 ## Roles and Permissions
 
