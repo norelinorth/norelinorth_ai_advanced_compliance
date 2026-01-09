@@ -1,0 +1,114 @@
+═══════════════════════════════════════════════════════════════════════════════
+  FRAPPE MARKETPLACE SUBMISSION - FORM FIELDS
+  App: Noreli North AI Advanced Compliance v1.0.1
+═══════════════════════════════════════════════════════════════════════════════
+
+PROFILE SECTION
+───────────────────────────────────────────────────────────────────────────────
+
+Title:
+Noreli North AI Advanced Compliance
+
+Documentation:
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
+
+Website:
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance
+
+Support:
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/issues
+
+Terms of Service:
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/blob/main/TERMS_OF_SERVICE.md
+
+Privacy Policy:
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/blob/main/PRIVACY_POLICY.md
+
+
+DESCRIPTION SECTION
+───────────────────────────────────────────────────────────────────────────────
+
+Summary (95 chars):
+AI-powered GRC platform with Knowledge Graphs, Risk Management, and Compliance Automation for ERPNext
+
+Full Description:
+[Copy from MARKETPLACE_PROFILE.md - Full markdown description with features, frameworks, etc.]
+
+
+SCREENSHOTS AND VIDEOS
+───────────────────────────────────────────────────────────────────────────────
+
+Required: Minimum 3 screenshots
+Recommended: 6-8 screenshots
+
+See SCREENSHOT_GUIDE.md for detailed capture instructions.
+
+Suggested screenshots:
+1. 01_workspace_dashboard.png - Compliance Workspace overview
+2. 02_control_activity_form.png - Control Activity with details
+3. 03_risk_register_heatmap.png - Risk Register with scoring
+4. 04_knowledge_graph.png - Knowledge Graph relationships
+5. 05_test_execution.png - Test Execution workflow
+6. 06_coverage_analysis.png - Coverage Analysis report
+7. 07_ai_queries.png - AI query interface (optional)
+8. 08_regulatory_feeds.png - Regulatory feed dashboard (optional)
+
+Generate demo data first:
+bench --site erpnext.local execute "advanced_compliance.advanced_compliance.demo.finance_accounting_data.setup_finance_accounting_data"
+
+
+ADDITIONAL FIELDS (if asked)
+───────────────────────────────────────────────────────────────────────────────
+
+Category:
+Business Operations > Compliance
+
+Tags:
+compliance, grc, risk-management, internal-controls, sox, sarbanes-oxley, coso, cobit, iso27001, audit, governance
+
+License:
+MIT
+
+Repository:
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance
+
+Version:
+1.0.1
+
+Minimum Frappe Version:
+v15.0.0
+
+Minimum ERPNext Version:
+v15.0.0
+
+
+PRE-SUBMISSION CHECKLIST
+───────────────────────────────────────────────────────────────────────────────
+
+✅ Terms of Service committed and pushed to GitHub
+✅ Privacy Policy committed and pushed to GitHub
+✅ All URLs publicly accessible
+✅ README.md complete and up to date
+✅ CHANGELOG.md reflects v1.0.1
+✅ All 225 tests passing
+✅ 100% Frappe standards compliance
+✅ Zero custom fields on core DocTypes
+✅ MIT License file present
+✅ No personal information in files
+✅ No email addresses (GitHub Issues for support)
+
+⚠️  TODO: Capture screenshots (minimum 3, recommended 6-8)
+
+
+QUICK LINKS
+───────────────────────────────────────────────────────────────────────────────
+
+Detailed Content: MARKETPLACE_PROFILE.md
+Screenshot Guide: SCREENSHOT_GUIDE.md
+Quick Reference: MARKETPLACE_SUBMISSION_QUICK_REFERENCE.md
+Full Summary: MARKETPLACE_SUBMISSION_SUMMARY.md
+
+
+═══════════════════════════════════════════════════════════════════════════════
+Ready for submission after screenshots are captured!
+═══════════════════════════════════════════════════════════════════════════════

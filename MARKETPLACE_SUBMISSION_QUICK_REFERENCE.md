@@ -13,27 +13,27 @@ Noreli North AI Advanced Compliance
 
 ### Documentation URL
 ```
-https://github.com/norelinorth/advanced_compliance/wiki
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
 ```
 
 ### Website URL
 ```
-https://github.com/norelinorth/advanced_compliance
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance
 ```
 
 ### Support URL
 ```
-https://github.com/norelinorth/advanced_compliance/issues
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/issues
 ```
 
 ### Terms of Service URL
 ```
-https://github.com/norelinorth/advanced_compliance/blob/main/TERMS_OF_SERVICE.md
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/blob/main/TERMS_OF_SERVICE.md
 ```
 
 ### Privacy Policy URL
 ```
-https://github.com/norelinorth/advanced_compliance/blob/main/PRIVACY_POLICY.md
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/blob/main/PRIVACY_POLICY.md
 ```
 
 ---
@@ -180,7 +180,7 @@ MIT
 
 ### Repository URL
 ```
-https://github.com/norelinorth/advanced_compliance
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance
 ```
 
 ### Version
@@ -258,9 +258,9 @@ Wait 2-3 minutes for GitHub to process, then verify the URLs work:
 
 1. Open browser in incognito mode
 2. Test Terms of Service URL:
-   https://github.com/norelinorth/advanced_compliance/blob/main/TERMS_OF_SERVICE.md
+   https://github.com/norelinorth/norelinorth_ai_advanced_compliance/blob/main/TERMS_OF_SERVICE.md
 3. Test Privacy Policy URL:
-   https://github.com/norelinorth/advanced_compliance/blob/main/PRIVACY_POLICY.md
+   https://github.com/norelinorth/norelinorth_ai_advanced_compliance/blob/main/PRIVACY_POLICY.md
 4. Ensure both pages load correctly
 
 ---

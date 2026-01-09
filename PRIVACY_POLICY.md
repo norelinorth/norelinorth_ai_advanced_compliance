@@ -153,7 +153,7 @@ If you operate in California:
 ## Open Source Transparency
 
 The App is **fully open source** (MIT License):
-- Source code: https://github.com/norelinorth/advanced_compliance
+- Source code: https://github.com/norelinorth/norelinorth_ai_advanced_compliance
 - You can inspect all code to verify privacy claims
 - You can modify the code to meet your privacy requirements
 - No hidden functionality or backdoors
@@ -182,8 +182,8 @@ Because you control the App and your data, you have the right to:
 ## Contact
 
 For privacy questions or concerns:
-- GitHub Issues: https://github.com/norelinorth/advanced_compliance/issues
-- GitHub Discussions: https://github.com/norelinorth/advanced_compliance/discussions
+- GitHub Issues: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/issues
+- GitHub Discussions: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/discussions
 
 For data privacy issues related to your installation, contact your Frappe/ERPNext administrator.
 
