@@ -264,9 +264,17 @@ class TestDemoDataGenerator(unittest.TestCase):
 	def test_generate_demo_data(self):
 		"""Test demo data generation (finance & accounting)."""
 		from advanced_compliance.advanced_compliance.demo.finance_accounting_data import (
+			clear_finance_accounting_data,
 			setup_finance_accounting_data,
 		)
 
+		# Clear any existing data first
+		try:
+			clear_finance_accounting_data()
+		except Exception:
+			pass
+
+		# Generate fresh data
 		result = setup_finance_accounting_data()
 
 		self.assertIn("controls", result)

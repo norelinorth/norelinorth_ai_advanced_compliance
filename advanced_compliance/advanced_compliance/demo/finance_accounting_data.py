@@ -1050,15 +1050,39 @@ def clear_finance_accounting_data():
 		frappe.delete_doc("COSO Principle", name, force=True)
 		summary["coso_principles"] += 1
 
-	# Risk Categories
-	for name in frappe.get_all("Risk Category", pluck="name"):
-		frappe.delete_doc("Risk Category", name, force=True)
-		summary["risk_categories"] += 1
+	# Risk Categories (delete children first for nested sets)
+	# Get all risk categories, ordered by lft DESC to delete children before parents
+	risk_cats = frappe.db.sql(
+		"""
+		SELECT name FROM `tabRisk Category`
+		ORDER BY lft DESC
+	""",
+		as_dict=True,
+	)
+	for cat in risk_cats:
+		try:
+			frappe.delete_doc("Risk Category", cat.name, force=True, ignore_on_trash=True)
+			summary["risk_categories"] += 1
+		except Exception:
+			# Skip if already deleted or has issues
+			pass
 
-	# Control Categories
-	for name in frappe.get_all("Control Category", pluck="name"):
-		frappe.delete_doc("Control Category", name, force=True)
-		summary["control_categories"] += 1
+	# Control Categories (delete children first for nested sets)
+	# Get all control categories, ordered by lft DESC to delete children before parents
+	control_cats = frappe.db.sql(
+		"""
+		SELECT name FROM `tabControl Category`
+		ORDER BY lft DESC
+	""",
+		as_dict=True,
+	)
+	for cat in control_cats:
+		try:
+			frappe.delete_doc("Control Category", cat.name, force=True, ignore_on_trash=True)
+			summary["control_categories"] += 1
+		except Exception:
+			# Skip if already deleted or has issues
+			pass
 
 	frappe.db.commit()
 	return summary
