@@ -194,14 +194,17 @@ class GraphExplorer {
   }
 
   async load_graph() {
+    console.log("[DEBUG] load_graph() called");
     const entity_type = this.entity_type_filter.get_value();
     const depth = this.depth_filter.get_value() || 2;
     const max_nodes = this.max_nodes_filter.get_value() || 100;
     const center_entity = this.center_entity_filter.get_value();
 
+    console.log("[DEBUG] Showing progress dialog...");
     frappe.show_progress(__("Loading Graph"), 30, 100, __("Fetching data..."));
 
     try {
+      console.log("[DEBUG] Calling API to fetch graph data...");
       const data = await frappe.call({
         method:
           "advanced_compliance.advanced_compliance.knowledge_graph.query.get_visualization_data",
@@ -213,99 +216,154 @@ class GraphExplorer {
         },
       });
 
+      console.log("[DEBUG] API call returned:", data);
       frappe.show_progress(__("Loading Graph"), 70, 100, __("Rendering..."));
 
       if (data.message) {
-        this.render_graph(data.message);
+        console.log("[DEBUG] Calling render_graph()...");
+        await this.render_graph(data.message);
+        console.log("[DEBUG] render_graph() completed");
+      } else {
+        console.warn("[DEBUG] No data.message in response");
       }
 
+      console.log("[DEBUG] Hiding progress dialog...");
       frappe.hide_progress();
+      console.log("[DEBUG] Progress dialog hidden - DONE");
     } catch (e) {
+      console.error("[DEBUG] ERROR in load_graph():", e);
       frappe.hide_progress();
       frappe.msgprint({
         title: __("Error"),
         indicator: "red",
-        message: __("Failed to load graph data"),
+        message: __("Failed to load graph data: ") + e.message,
       });
     }
   }
 
   render_graph(data) {
-    const container = document.getElementById("graph-container");
+    console.log("[DEBUG] render_graph() started");
+    return new Promise((resolve, reject) => {
+      try {
+        const container = document.getElementById("graph-container");
+        console.log("[DEBUG] Container element:", container);
 
-    // Create datasets
-    this.nodes = new vis.DataSet(data.nodes);
-    this.edges = new vis.DataSet(data.edges);
+        // Create datasets
+        this.nodes = new vis.DataSet(data.nodes);
+        this.edges = new vis.DataSet(data.edges);
 
-    console.log(
-      `[Graph] Rendering ${data.node_count} nodes, ${data.edge_count} edges (physics disabled)`,
-    );
+        console.log(
+          `[DEBUG] Created datasets: ${data.node_count} nodes, ${data.edge_count} edges`,
+        );
 
-    // Network options - PHYSICS DISABLED for instant rendering
-    const options = {
-      nodes: {
-        shape: "dot",
-        scaling: {
-          min: 10,
-          max: 30,
-        },
-        font: {
-          size: 12,
-          face: "Inter, -apple-system, system-ui, sans-serif",
-        },
-      },
-      edges: {
-        width: 1,
-        color: { inherit: "from" },
-        smooth: {
-          type: "continuous",
-        },
-        arrows: {
-          to: { enabled: true, scaleFactor: 0.5 },
-        },
-      },
-      physics: {
-        enabled: false, // DISABLED: Instant rendering, no stabilization needed
-      },
-      interaction: {
-        hover: true,
-        tooltipDelay: 200,
-        hideEdgesOnDrag: true,
-      },
-    };
+        // Network options with physics ENABLED
+        const options = {
+          nodes: {
+            shape: "dot",
+            scaling: {
+              min: 10,
+              max: 30,
+            },
+            font: {
+              size: 12,
+              face: "Inter, -apple-system, system-ui, sans-serif",
+            },
+          },
+          edges: {
+            width: 1,
+            color: { inherit: "from" },
+            smooth: {
+              type: "continuous",
+            },
+            arrows: {
+              to: { enabled: true, scaleFactor: 0.5 },
+            },
+          },
+          physics: {
+            enabled: true,
+            stabilization: {
+              enabled: true,
+              iterations: 100,
+              updateInterval: 25,
+            },
+            barnesHut: {
+              gravitationalConstant: -2000,
+              springLength: 150,
+              springConstant: 0.04,
+            },
+          },
+          interaction: {
+            hover: true,
+            tooltipDelay: 200,
+            hideEdgesOnDrag: true,
+          },
+        };
 
-    // Create network (renders instantly with physics disabled)
-    this.network = new vis.Network(
-      container,
-      { nodes: this.nodes, edges: this.edges },
-      options,
-    );
+        console.log("[DEBUG] Creating vis.Network...");
 
-    console.log("[Graph] Rendering complete (instant - no physics)");
+        // Create network
+        this.network = new vis.Network(
+          container,
+          { nodes: this.nodes, edges: this.edges },
+          options,
+        );
 
-    // Event handlers
-    this.network.on("click", (params) => {
-      if (params.nodes.length > 0) {
-        this.on_node_click(params.nodes[0]);
-      } else if (params.edges.length > 0) {
-        this.on_edge_click(params.edges[0]);
-      } else {
-        this.clear_selection();
+        console.log("[DEBUG] vis.Network created successfully");
+
+        let resolved = false;
+
+        // Listen for stabilization complete
+        this.network.once("stabilizationIterationsDone", () => {
+          console.log("[DEBUG] stabilizationIterationsDone event fired");
+          if (!resolved) {
+            resolved = true;
+            resolve();
+          }
+        });
+
+        // Fallback: Force resolve after 3 seconds
+        setTimeout(() => {
+          if (!resolved) {
+            console.warn(
+              "[DEBUG] Timeout: Forcing resolve after 3 seconds (stabilization did not complete)",
+            );
+            resolved = true;
+            resolve();
+          }
+        }, 3000);
+
+        // Event handlers
+        this.network.on("click", (params) => {
+          if (params.nodes.length > 0) {
+            this.on_node_click(params.nodes[0]);
+          } else if (params.edges.length > 0) {
+            this.on_edge_click(params.edges[0]);
+          } else {
+            this.clear_selection();
+          }
+        });
+
+        this.network.on("doubleClick", (params) => {
+          if (params.nodes.length > 0) {
+            this.on_node_double_click(params.nodes[0]);
+          }
+        });
+
+        // Update node count
+        this.page.set_secondary_action(
+          `${data.node_count} ${__("nodes")}, ${data.edge_count} ${__(
+            "edges",
+          )}`,
+          null,
+          "info-sign",
+        );
+
+        console.log("[DEBUG] Event handlers registered");
+      } catch (err) {
+        console.error("[DEBUG] ERROR in render_graph():", err);
+        reject(err);
       }
     });
-
-    this.network.on("doubleClick", (params) => {
-      if (params.nodes.length > 0) {
-        this.on_node_double_click(params.nodes[0]);
-      }
-    });
-
-    // Update node count
-    this.page.set_secondary_action(
-      `${data.node_count} ${__("nodes")}, ${data.edge_count} ${__("edges")}`,
-      null,
-      "info-sign",
-    );
   }
 
   async on_node_click(node_id) {
