@@ -16,7 +16,7 @@ Full license text: https://opensource.org/licenses/MIT
 ## 3. Open Source Software
 
 This App is open source software. The complete source code is available at:
-https://github.com/norelinorth/advanced_compliance
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance
 
 You may inspect, modify, and redistribute the code according to the MIT License terms.
 
@@ -102,9 +102,9 @@ TO THE MAXIMUM EXTENT PERMITTED BY LAW:
 
 ### 9.1 Community Support
 Free community support is available via:
-- GitHub Issues: https://github.com/norelinorth/advanced_compliance/issues
-- GitHub Discussions: https://github.com/norelinorth/advanced_compliance/discussions
-- Documentation: https://github.com/norelinorth/advanced_compliance/wiki
+- GitHub Issues: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/issues
+- GitHub Discussions: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/discussions
+- Documentation: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
 
 ### 9.2 No Guaranteed Support
 - Support is provided on a best-effort basis
@@ -153,8 +153,8 @@ These Terms, together with the MIT License, constitute the entire agreement betw
 ## 16. Contact
 
 For questions about these Terms:
-- GitHub Issues: https://github.com/norelinorth/advanced_compliance/issues
-- GitHub Discussions: https://github.com/norelinorth/advanced_compliance/discussions
+- GitHub Issues: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/issues
+- GitHub Discussions: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/discussions
 
 ---
 

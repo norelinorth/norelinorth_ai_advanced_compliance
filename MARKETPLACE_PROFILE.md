@@ -18,27 +18,27 @@ Noreli North AI Advanced Compliance
 
 #### Documentation
 ```
-https://github.com/norelinorth/advanced_compliance/wiki
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
 ```
 
 #### Website
 ```
-https://github.com/norelinorth/advanced_compliance
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance
 ```
 
 #### Support
 ```
-https://github.com/norelinorth/advanced_compliance/issues
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/issues
 ```
 
 #### Terms of Service
 ```
-https://github.com/norelinorth/advanced_compliance/blob/main/TERMS_OF_SERVICE.md
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/blob/main/TERMS_OF_SERVICE.md
 ```
 
 #### Privacy Policy
 ```
-https://github.com/norelinorth/advanced_compliance/blob/main/PRIVACY_POLICY.md
+https://github.com/norelinorth/norelinorth_ai_advanced_compliance/blob/main/PRIVACY_POLICY.md
 ```
 
 ---
@@ -222,7 +222,7 @@ knowledge-graph, ai, machine-learning, regulatory-compliance
 
 **Publisher Name**: Noreli North
 **Publisher Type**: Individual Developer
-**GitHub**: https://github.com/norelinorth
+**GitHub**: https://github.com/norelinorth/norelinorth_ai_advanced_compliance
 
 ---
 
@@ -254,7 +254,7 @@ Available in README.md and GitHub Wiki
 
 Quick install:
 ```bash
-bench get-app https://github.com/norelinorth/advanced_compliance.git
+bench get-app https://github.com/norelinorth/norelinorth_ai_advanced_compliance.git
 bench --site your-site.local install-app advanced_compliance
 ```
 
@@ -262,9 +262,9 @@ bench --site your-site.local install-app advanced_compliance
 
 ## Support Channels
 
-- **Documentation**: https://github.com/norelinorth/advanced_compliance/wiki
-- **Bug Reports**: https://github.com/norelinorth/advanced_compliance/issues
-- **Feature Requests**: https://github.com/norelinorth/advanced_compliance/discussions
+- **Documentation**: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/wiki
+- **Bug Reports**: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/issues
+- **Feature Requests**: https://github.com/norelinorth/norelinorth_ai_advanced_compliance/discussions
 - **Security Issues**: Report via GitHub Security Advisories
 
 ---
