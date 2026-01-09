@@ -194,17 +194,12 @@ class GraphExplorer {
   }
 
   async load_graph() {
-    console.log("[DEBUG] load_graph() called");
     const entity_type = this.entity_type_filter.get_value();
     const depth = this.depth_filter.get_value() || 2;
     const max_nodes = this.max_nodes_filter.get_value() || 100;
     const center_entity = this.center_entity_filter.get_value();
 
-    console.log("[DEBUG] Showing progress dialog...");
-    frappe.show_progress(__("Loading Graph"), 30, 100, __("Fetching data..."));
-
     try {
-      console.log("[DEBUG] Calling API to fetch graph data...");
       const data = await frappe.call({
         method:
           "advanced_compliance.advanced_compliance.knowledge_graph.query.get_visualization_data",
@@ -216,82 +211,29 @@ class GraphExplorer {
         },
       });
 
-      console.log("[DEBUG] API call returned:", data);
-      frappe.show_progress(__("Loading Graph"), 70, 100, __("Rendering..."));
-
       if (data.message) {
-        console.log("[DEBUG] Calling render_graph()...");
         await this.render_graph(data.message);
-        console.log("[DEBUG] render_graph() completed");
-      } else {
-        console.warn("[DEBUG] No data.message in response");
       }
-
-      console.log("[DEBUG] Hiding progress dialog...");
-      frappe.hide_progress();
-
-      // FORCE CLOSE: Frappe's hide_progress() sometimes fails to close the dialog
-      // Directly manipulate DOM to ensure dialog is removed
-      setTimeout(() => {
-        const progressDialog = document.querySelector(
-          ".modal.show, .frappe-progress-modal, [data-progress-modal]",
-        );
-        if (progressDialog) {
-          console.warn("[DEBUG] FORCE REMOVING stuck progress dialog from DOM");
-          progressDialog.remove();
-          // Also remove backdrop if present
-          const backdrop = document.querySelector(".modal-backdrop");
-          if (backdrop) backdrop.remove();
-          // Reset body overflow
-          document.body.style.overflow = "";
-        }
-      }, 100);
-
-      console.log("[DEBUG] Progress dialog hidden - DONE");
     } catch (e) {
-      console.error("[DEBUG] ERROR in load_graph():", e);
-      frappe.hide_progress();
-
-      // FORCE CLOSE on error too
-      setTimeout(() => {
-        const progressDialog = document.querySelector(
-          ".modal.show, .frappe-progress-modal, [data-progress-modal]",
-        );
-        if (progressDialog) {
-          console.warn(
-            "[DEBUG] FORCE REMOVING stuck progress dialog (error path)",
-          );
-          progressDialog.remove();
-          const backdrop = document.querySelector(".modal-backdrop");
-          if (backdrop) backdrop.remove();
-          document.body.style.overflow = "";
-        }
-      }, 100);
-
+      console.error("Failed to load graph:", e);
       frappe.msgprint({
         title: __("Error"),
         indicator: "red",
-        message: __("Failed to load graph data: ") + e.message,
+        message: __("Failed to load graph data"),
       });
     }
   }
 
   render_graph(data) {
-    console.log("[DEBUG] render_graph() started");
     return new Promise((resolve, reject) => {
       try {
         const container = document.getElementById("graph-container");
-        console.log("[DEBUG] Container element:", container);
 
         // Create datasets
         this.nodes = new vis.DataSet(data.nodes);
         this.edges = new vis.DataSet(data.edges);
 
-        console.log(
-          `[DEBUG] Created datasets: ${data.node_count} nodes, ${data.edge_count} edges`,
-        );
-
-        // Network options with physics ENABLED
+        // Network options with physics enabled for nice layout
         const options = {
           nodes: {
             shape: "dot",
@@ -334,8 +276,6 @@ class GraphExplorer {
           },
         };
 
-        console.log("[DEBUG] Creating vis.Network...");
-
         // Create network
         this.network = new vis.Network(
           container,
@@ -343,25 +283,19 @@ class GraphExplorer {
           options,
         );
 
-        console.log("[DEBUG] vis.Network created successfully");
-
+        // Wait for physics stabilization, with timeout fallback
         let resolved = false;
 
-        // Listen for stabilization complete
         this.network.once("stabilizationIterationsDone", () => {
-          console.log("[DEBUG] stabilizationIterationsDone event fired");
           if (!resolved) {
             resolved = true;
             resolve();
           }
         });
 
-        // Fallback: Force resolve after 3 seconds
+        // Fallback: resolve after 3 seconds even if stabilization doesn't complete
         setTimeout(() => {
           if (!resolved) {
-            console.warn(
-              "[DEBUG] Timeout: Forcing resolve after 3 seconds (stabilization did not complete)",
-            );
             resolved = true;
             resolve();
           }
@@ -392,10 +326,8 @@ class GraphExplorer {
           null,
           "info-sign",
         );
-
-        console.log("[DEBUG] Event handlers registered");
       } catch (err) {
-        console.error("[DEBUG] ERROR in render_graph():", err);
+        console.error("Error rendering graph:", err);
         reject(err);
       }
     });
