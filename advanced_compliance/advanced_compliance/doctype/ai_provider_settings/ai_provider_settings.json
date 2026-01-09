@@ -64,11 +64,11 @@
             "fieldtype": "Column Break"
         },
         {
-            "default": "0",
-            "description": "Enable natural language compliance queries (requires API key)",
+            "default": "1",
+            "description": "Enable AI-enhanced natural language queries. When enabled, users can choose to use AI for complex queries. Rule-based queries always work regardless of this setting.",
             "fieldname": "enable_nl_queries",
             "fieldtype": "Check",
-            "label": "Enable NL Queries"
+            "label": "Enable AI-Enhanced NL Queries"
         },
         {
             "default": "1",

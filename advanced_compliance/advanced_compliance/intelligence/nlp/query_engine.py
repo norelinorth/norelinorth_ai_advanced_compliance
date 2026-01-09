@@ -197,6 +197,9 @@ class NLQueryEngine:
 			status = entities["status_value"].lower()
 			if status in status_map:
 				filters["status"] = status_map[status]
+		elif doctype == "Deficiency" and "open" in parsed.get("original_question", "").lower():
+			# Default to open deficiencies if not explicitly specified
+			filters["status"] = ["not in", ["Closed", "Remediated"]]
 
 		# Framework filter
 		if "framework" in entities:
@@ -243,6 +246,9 @@ class NLQueryEngine:
 				filters["residual_risk_score"] = [">=", high_risk_threshold]
 			elif doctype == "Control Activity":
 				filters["is_key_control"] = 1
+			elif doctype == "Deficiency":
+				# Critical/high-risk deficiencies are Significant or Material severity
+				filters["severity"] = ["in", ["Significant", "Material"]]
 
 		# Control type filter
 		if "control_type" in entities and doctype == "Control Activity":
@@ -758,6 +764,16 @@ Do not just say "Found X results" - provide insight about WHAT was found and WHY
 	def _log_query(self, question, parsed, result):
 		"""Log the query for analytics and improvement."""
 		try:
+			# Convert result to JSON-serializable format by using frappe.as_json
+			# which handles date/datetime objects properly
+			response_data = None
+			if result.get("results"):
+				try:
+					response_data = frappe.as_json(result)
+				except Exception:
+					# If serialization still fails, skip storing response data
+					response_data = None
+
 			log = frappe.get_doc(
 				{
 					"doctype": "NL Query Log",
@@ -769,7 +785,7 @@ Do not just say "Found X results" - provide insight about WHAT was found and WHY
 					),
 					"query_successful": result.get("success", False),
 					"response": result.get("response"),
-					"response_data": json.dumps(result) if result.get("results") else None,
+					"response_data": response_data,
 					"result_count": result.get("count", 0),
 				}
 			)
@@ -819,6 +835,9 @@ def ask_compliance_question(question, use_llm=False):
 	"""
 	API endpoint to ask a compliance question.
 
+	IMPORTANT: Rule-based queries (use_llm=False) work WITHOUT any AI configuration.
+	Only AI-enhanced queries (use_llm=True) require "Enable AI-Enhanced NL Queries" setting.
+
 	Args:
 	    question: Natural language question
 	    use_llm: Whether to use LLM (default False)
@@ -826,12 +845,30 @@ def ask_compliance_question(question, use_llm=False):
 	Returns:
 	    Query result
 	"""
-	from advanced_compliance.advanced_compliance.doctype.ai_provider_settings.ai_provider_settings import (
-		is_ai_feature_enabled,
-	)
+	use_llm = cint(use_llm)
 
-	if not is_ai_feature_enabled("natural_language_queries"):
-		frappe.throw(_("Natural language queries are not enabled"))
+	# CRITICAL: Only check AI feature flag when user explicitly requests AI-enhanced queries
+	# Rule-based queries must work without any AI settings enabled
+	if use_llm:
+		try:
+			from advanced_compliance.advanced_compliance.doctype.ai_provider_settings.ai_provider_settings import (
+				is_ai_feature_enabled,
+			)
+
+			if not is_ai_feature_enabled("natural_language_queries"):
+				frappe.throw(
+					_(
+						"AI-enhanced queries are not enabled. Please uncheck 'AI Enhanced' to use rule-based queries, "
+						"or enable 'AI-Enhanced NL Queries' in AI Provider Settings."
+					)
+				)
+		except Exception as e:
+			frappe.log_error(message=f"Error checking AI feature: {str(e)}", title="NL Query AI Check Error")
+			frappe.throw(
+				_(
+					"Could not verify AI configuration. Please uncheck 'AI Enhanced' to use rule-based queries."
+				)
+			)
 
 	# Check permissions - user needs read access to at least one compliance DocType
 	compliance_doctypes = ["Control Activity", "Risk Register Entry", "Deficiency", "Control Evidence"]
@@ -846,7 +883,7 @@ def ask_compliance_question(question, use_llm=False):
 		)
 
 	engine = NLQueryEngine()
-	return engine.query(question, use_llm=cint(use_llm))
+	return engine.query(question, use_llm=use_llm)
 
 
 @frappe.whitelist()

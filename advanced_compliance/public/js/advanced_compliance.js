@@ -238,7 +238,7 @@ advanced_compliance = {
       callback: function (r) {
         if (r.message) {
           var d = new frappe.ui.Dialog({
-            title: r.message.control_name,
+            title: r.message?.control_name || __("Control Details"),
             size: "large",
             fields: [
               {
@@ -265,13 +265,15 @@ advanced_compliance = {
 
     // Status badge
     html += '<div class="mb-3">';
-    html +=
-      '<span class="compliance-badge status-' +
-      control.status.toLowerCase() +
-      '">';
-    html += control.status;
-    html += "</span>";
-    if (control.is_key_control) {
+    if (control?.status) {
+      html +=
+        '<span class="compliance-badge status-' +
+        control.status.toLowerCase() +
+        '">';
+      html += control.status;
+      html += "</span>";
+    }
+    if (control?.is_key_control) {
       html +=
         ' <span class="compliance-badge status-warning">Key Control</span>';
     }

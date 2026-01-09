@@ -31,7 +31,7 @@ frappe.query_reports["Control Status Summary"] = {
   formatter: function (value, row, column, data, default_formatter) {
     value = default_formatter(value, row, column, data);
 
-    if (column.fieldname === "test_status") {
+    if (column.fieldname === "test_status" && data?.test_status) {
       if (data.test_status === "Overdue") {
         value = `<span class="indicator-pill red">${value}</span>`;
       } else if (data.test_status === "Due Soon") {
@@ -59,7 +59,7 @@ frappe.query_reports["Control Status Summary"] = {
       }
     }
 
-    if (column.fieldname === "status") {
+    if (column.fieldname === "status" && data?.status) {
       const colors = {
         Draft: "orange",
         Active: "green",

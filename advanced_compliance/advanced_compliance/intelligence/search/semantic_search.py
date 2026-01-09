@@ -51,7 +51,11 @@ class SemanticSearch:
 			)
 
 			return get_ai_settings()
-		except Exception:
+		except Exception as e:
+			frappe.log_error(
+				message=f"Failed to get AI settings: {str(e)}\n{frappe.get_traceback()}",
+				title="Semantic Search Initialization Error",
+			)
 			return None
 
 	def search(self, query, doctypes=None, limit=10, threshold=0.5):
@@ -158,7 +162,11 @@ class SemanticSearch:
 			)
 
 			return is_ai_assistant_available()
-		except Exception:
+		except Exception as e:
+			frappe.log_error(
+				message=f"Failed to check AI availability: {str(e)}\n{frappe.get_traceback()}",
+				title="Semantic Search AI Check Error",
+			)
 			return False
 
 	def _get_ai_provider(self):
@@ -168,7 +176,11 @@ class SemanticSearch:
 
 			config = AIProviderResolver.get_ai_provider_config()
 			return config.get("provider_name", "")
-		except Exception:
+		except Exception as e:
+			frappe.log_error(
+				message=f"Failed to get AI provider: {str(e)}\n{frappe.get_traceback()}",
+				title="Semantic Search Provider Error",
+			)
 			return None
 
 	def _generate_api_embedding(self, text):
@@ -320,7 +332,11 @@ class SemanticSearch:
 							"similarity": 0.5,  # Fixed score for text match
 						}
 					)
-			except Exception:
+			except Exception as e:
+				frappe.log_error(
+					message=f"Failed to search {doctype}: {str(e)}\n{frappe.get_traceback()}",
+					title="Semantic Search DocType Error",
+				)
 				continue
 
 		return results[:limit]

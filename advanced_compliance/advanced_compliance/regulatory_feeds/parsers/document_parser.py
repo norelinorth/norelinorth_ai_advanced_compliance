@@ -135,9 +135,13 @@ class DocumentParser:
 			if parsed:
 				return getdate(parsed)
 		except ImportError:
+			# dateparser library not installed - fallback to manual parsing
 			pass
-		except Exception:
-			pass
+		except Exception as e:
+			frappe.log_error(
+				message=f"Failed to parse date '{date_str}' using dateparser: {str(e)}",
+				title="Document Parser Date Error",
+			)
 
 		# Fallback: try common formats
 		from datetime import datetime
@@ -187,9 +191,13 @@ class DocumentParser:
 			return keywords
 
 		except ImportError:
-			# Fallback: simple word frequency
+			# Fallback: simple word frequency (sklearn not installed)
 			return self._simple_keyword_extraction(top_n)
-		except Exception:
+		except Exception as e:
+			frappe.log_error(
+				message=f"Failed to extract keywords using TF-IDF: {str(e)}",
+				title="Document Parser Keyword Error",
+			)
 			return self._simple_keyword_extraction(top_n)
 
 	def _simple_keyword_extraction(self, top_n=10):
@@ -479,6 +487,11 @@ class PDFParser:
 			return tables
 
 		except ImportError:
+			# pdfplumber not installed
 			return []
-		except Exception:
+		except Exception as e:
+			frappe.log_error(
+				message=f"Failed to extract tables from PDF: {str(e)}",
+				title="Document Parser Table Extraction Error",
+			)
 			return []

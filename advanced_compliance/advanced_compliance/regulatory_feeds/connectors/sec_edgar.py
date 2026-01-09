@@ -147,8 +147,11 @@ class SECEdgarConnector(BaseConnector):
 					f"{item.published_parsed.tm_mon:02d}-"
 					f"{item.published_parsed.tm_mday:02d}"
 				)
-			except Exception:
-				pass
+			except Exception as e:
+				frappe.log_error(
+					message=f"Failed to parse published date from SEC EDGAR feed: {str(e)}",
+					title="SEC EDGAR Date Parse Error",
+				)
 
 		if hasattr(item, "updated_parsed") and item.updated_parsed:
 			try:
@@ -157,8 +160,11 @@ class SECEdgarConnector(BaseConnector):
 					f"{item.updated_parsed.tm_mon:02d}-"
 					f"{item.updated_parsed.tm_mday:02d}"
 				)
-			except Exception:
-				pass
+			except Exception as e:
+				frappe.log_error(
+					message=f"Failed to parse updated date from SEC EDGAR feed: {str(e)}",
+					title="SEC EDGAR Date Parse Error",
+				)
 
 		return None
 

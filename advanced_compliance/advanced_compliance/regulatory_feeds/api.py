@@ -23,7 +23,9 @@ def sync_feed(feed_source):
 		dict: Sync results with count of new updates
 	"""
 	if not frappe.has_permission("Regulatory Feed Source", "write"):
-		frappe.throw(_("Insufficient permissions to sync feeds"))
+		frappe.throw(
+			_("Insufficient permissions to sync feeds. Requires write permission on Regulatory Feed Source.")
+		)
 
 	# Validate feed source exists
 	if not frappe.db.exists("Regulatory Feed Source", feed_source):
@@ -48,7 +50,9 @@ def sync_all_feeds():
 		dict: Sync results
 	"""
 	if not frappe.has_permission("Regulatory Feed Source", "write"):
-		frappe.throw(_("Insufficient permissions to sync feeds"))
+		frappe.throw(
+			_("Insufficient permissions to sync feeds. Requires write permission on Regulatory Feed Source.")
+		)
 
 	from .scheduler import sync_all_feeds as do_sync
 
@@ -70,7 +74,11 @@ def analyze_update_impact(regulatory_update):
 		dict: Analysis results with created assessments
 	"""
 	if not frappe.has_permission("Regulatory Impact Assessment", "create"):
-		frappe.throw(_("Insufficient permissions to create assessments"))
+		frappe.throw(
+			_(
+				"Insufficient permissions to create impact assessments. Requires create permission on Regulatory Impact Assessment."
+			)
+		)
 
 	from .mapping.impact_mapper import ImpactMapper
 
@@ -106,7 +114,9 @@ def extract_update_metadata(regulatory_update):
 		dict: Extracted metadata
 	"""
 	if not frappe.has_permission("Regulatory Update", "write"):
-		frappe.throw(_("Insufficient permissions"))
+		frappe.throw(
+			_("Insufficient permissions to extract metadata. Requires write permission on Regulatory Update.")
+		)
 
 	# Validate update exists
 	if not frappe.db.exists("Regulatory Update", regulatory_update):
@@ -136,7 +146,11 @@ def get_regulatory_timeline(days=90):
 		list: Upcoming regulatory deadlines
 	"""
 	if not frappe.has_permission("Regulatory Update", "read"):
-		frappe.throw(_("Insufficient permissions to view regulatory timeline"))
+		frappe.throw(
+			_(
+				"Insufficient permissions to view regulatory timeline. Requires read permission on Regulatory Update."
+			)
+		)
 
 	from frappe.utils import add_days, cint, nowdate
 
@@ -178,7 +192,11 @@ def get_pending_actions(user=None):
 
 	# Security: Only allow viewing own pending actions unless user is System Manager
 	if user != frappe.session.user and "System Manager" not in frappe.get_roles():
-		frappe.throw(_("You can only view your own pending actions"))
+		frappe.throw(
+			_(
+				"You can only view your own pending actions. System Manager role required to view other users' actions."
+			)
+		)
 
 	assessments = frappe.get_all(
 		"Regulatory Impact Assessment",
@@ -219,7 +237,11 @@ def get_feed_status():
 		list: Feed status information
 	"""
 	if not frappe.has_permission("Regulatory Feed Source", "read"):
-		frappe.throw(_("Insufficient permissions to view feed status"))
+		frappe.throw(
+			_(
+				"Insufficient permissions to view feed status. Requires read permission on Regulatory Feed Source."
+			)
+		)
 
 	feeds = frappe.get_all(
 		"Regulatory Feed Source",
@@ -273,7 +295,11 @@ def get_compliance_dashboard_data():
 		dict: Dashboard statistics and data
 	"""
 	if not frappe.has_permission("Regulatory Update", "read"):
-		frappe.throw(_("Insufficient permissions to view compliance dashboard"))
+		frappe.throw(
+			_(
+				"Insufficient permissions to view compliance dashboard. Requires read permission on Regulatory Update."
+			)
+		)
 
 	from frappe.utils import add_days, nowdate
 
@@ -343,7 +369,11 @@ def mark_assessment_complete(assessment_name, action_taken, notes=None):
 		dict: Success status
 	"""
 	if not frappe.has_permission("Regulatory Impact Assessment", "write"):
-		frappe.throw(_("Insufficient permissions"))
+		frappe.throw(
+			_(
+				"Insufficient permissions to complete assessment. Requires write permission on Regulatory Impact Assessment."
+			)
+		)
 
 	# Validate assessment exists
 	if not frappe.db.exists("Regulatory Impact Assessment", assessment_name):
@@ -370,7 +400,11 @@ def mark_assessment_no_action(assessment_name, reason):
 		dict: Success status
 	"""
 	if not frappe.has_permission("Regulatory Impact Assessment", "write"):
-		frappe.throw(_("Insufficient permissions"))
+		frappe.throw(
+			_(
+				"Insufficient permissions to mark assessment. Requires write permission on Regulatory Impact Assessment."
+			)
+		)
 
 	# Validate assessment exists
 	if not frappe.db.exists("Regulatory Impact Assessment", assessment_name):

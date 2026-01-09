@@ -115,8 +115,11 @@ class AutoSuggest:
 						"reasoning": _("Semantically similar based on description"),
 					}
 				)
-		except Exception:
-			pass
+		except Exception as e:
+			frappe.log_error(
+				message=f"Failed to get semantic control suggestions for risk {risk_id}: {str(e)}",
+				title="Auto-Suggest Semantic Error",
+			)
 
 		# Sort by relevance
 		suggestions.sort(key=lambda x: x["relevance_score"], reverse=True)
@@ -275,8 +278,11 @@ class AutoSuggest:
 				if prediction and prediction.failure_probability > 0.5:
 					priority_score += flt(prediction.failure_probability) * 0.2
 					reasons.append(_("High predicted risk ({0})").format(prediction.risk_level))
-			except Exception:
-				pass
+			except Exception as e:
+				frappe.log_error(
+					message=f"Failed to get risk prediction for control {control.name}: {str(e)}",
+					title="Auto-Suggest Prediction Error",
+				)
 
 			if priority_score > 0.2:
 				suggestions.append(

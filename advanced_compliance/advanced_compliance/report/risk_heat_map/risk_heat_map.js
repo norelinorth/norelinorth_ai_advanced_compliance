@@ -26,7 +26,7 @@ frappe.query_reports["Risk Heat Map"] = {
   formatter: function (value, row, column, data, default_formatter) {
     value = default_formatter(value, row, column, data);
 
-    if (column.fieldname === "risk_level") {
+    if (column.fieldname === "risk_level" && data?.risk_level) {
       const colors = {
         Critical: "red",
         High: "orange",
@@ -37,7 +37,7 @@ frappe.query_reports["Risk Heat Map"] = {
       value = `<span class="indicator-pill ${color}">${value}</span>`;
     }
 
-    if (column.fieldname === "status") {
+    if (column.fieldname === "status" && data?.status) {
       const colors = {
         Open: "red",
         Mitigated: "green",
@@ -49,7 +49,10 @@ frappe.query_reports["Risk Heat Map"] = {
       value = `<span class="indicator-pill ${color}">${value}</span>`;
     }
 
-    if (column.fieldname === "residual_risk_score") {
+    if (
+      column.fieldname === "residual_risk_score" &&
+      data?.residual_risk_score != null
+    ) {
       let color = "green";
       if (data.residual_risk_score >= 16) color = "red";
       else if (data.residual_risk_score >= 12) color = "orange";
