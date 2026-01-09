@@ -229,10 +229,45 @@ class GraphExplorer {
 
       console.log("[DEBUG] Hiding progress dialog...");
       frappe.hide_progress();
+
+      // FORCE CLOSE: Frappe's hide_progress() sometimes fails to close the dialog
+      // Directly manipulate DOM to ensure dialog is removed
+      setTimeout(() => {
+        const progressDialog = document.querySelector(
+          ".modal.show, .frappe-progress-modal, [data-progress-modal]",
+        );
+        if (progressDialog) {
+          console.warn("[DEBUG] FORCE REMOVING stuck progress dialog from DOM");
+          progressDialog.remove();
+          // Also remove backdrop if present
+          const backdrop = document.querySelector(".modal-backdrop");
+          if (backdrop) backdrop.remove();
+          // Reset body overflow
+          document.body.style.overflow = "";
+        }
+      }, 100);
+
       console.log("[DEBUG] Progress dialog hidden - DONE");
     } catch (e) {
       console.error("[DEBUG] ERROR in load_graph():", e);
       frappe.hide_progress();
+
+      // FORCE CLOSE on error too
+      setTimeout(() => {
+        const progressDialog = document.querySelector(
+          ".modal.show, .frappe-progress-modal, [data-progress-modal]",
+        );
+        if (progressDialog) {
+          console.warn(
+            "[DEBUG] FORCE REMOVING stuck progress dialog (error path)",
+          );
+          progressDialog.remove();
+          const backdrop = document.querySelector(".modal-backdrop");
+          if (backdrop) backdrop.remove();
+          document.body.style.overflow = "";
+        }
+      }, 100);
+
       frappe.msgprint({
         title: __("Error"),
         indicator: "red",
