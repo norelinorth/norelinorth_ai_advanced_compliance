@@ -238,6 +238,10 @@ class GraphExplorer {
       this.nodes = new vis.DataSet(data.nodes);
       this.edges = new vis.DataSet(data.edges);
 
+      console.log(
+        `[Graph] Rendering ${data.node_count} nodes, ${data.edge_count} edges`,
+      );
+
       // Network options
       const options = {
         nodes: {
@@ -262,8 +266,11 @@ class GraphExplorer {
           },
         },
         physics: {
+          enabled: true,
           stabilization: {
-            iterations: 100,
+            enabled: true,
+            iterations: 50, // Reduced from 100 for faster rendering
+            updateInterval: 25,
           },
           barnesHut: {
             gravitationalConstant: -2000,
@@ -285,10 +292,22 @@ class GraphExplorer {
         options,
       );
 
-      // Wait for physics stabilization to complete before resolving
+      let stabilized = false;
+
+      // Wait for physics stabilization to complete
       this.network.once("stabilizationIterationsDone", () => {
+        console.log("[Graph] Stabilization complete");
+        stabilized = true;
         resolve();
       });
+
+      // Fallback timeout: force resolve after 5 seconds
+      setTimeout(() => {
+        if (!stabilized) {
+          console.warn("[Graph] Stabilization timeout - forcing dialog close");
+          resolve();
+        }
+      }, 5000);
 
       // Event handlers
       this.network.on("click", (params) => {
