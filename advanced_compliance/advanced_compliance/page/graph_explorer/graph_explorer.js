@@ -139,7 +139,7 @@ class GraphExplorer {
     this.build_legend();
   }
 
-  build_legend() {
+  async build_legend() {
     // Entity type colors (must match ENTITY_COLORS in compliance_graph_entity.py)
     const colors = {
       Control: "#3498db", // Blue
@@ -152,41 +152,48 @@ class GraphExplorer {
 
     // Fetch actual entity types from database and build legend dynamically
     var self = this;
-    frappe.call({
-      method: "frappe.client.get_list",
-      args: {
-        doctype: "Compliance Graph Entity",
-        filters: { is_active: 1 },
-        fields: ["entity_type"],
-        group_by: "entity_type",
-        limit_page_length: 0,
-      },
-      async: false,
-      callback: function (r) {
-        let legend_html = "";
-        if (r.message && r.message.length > 0) {
-          const actual_types = [
-            ...new Set(r.message.map((e) => e.entity_type)),
-          ];
-          for (const type of actual_types) {
-            const color = colors[type] || "#7f8c8d";
-            legend_html += `
-                            <div class="legend-item mr-3 mb-2">
-                                <span class="legend-color" style="background-color: ${color}; width: 12px; height: 12px; display: inline-block; border-radius: 50%; margin-right: 4px;"></span>
-                                <span class="legend-label">${__(type)}</span>
-                            </div>
-                        `;
-          }
+    try {
+      const response = await frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+          doctype: "Compliance Graph Entity",
+          filters: { is_active: 1 },
+          fields: ["entity_type"],
+          group_by: "entity_type",
+          limit_page_length: 0,
+        },
+      });
+
+      let legend_html = "";
+      if (response.message && response.message.length > 0) {
+        const actual_types = [
+          ...new Set(response.message.map((e) => e.entity_type)),
+        ];
+        for (const type of actual_types) {
+          const color = colors[type] || "#7f8c8d";
+          legend_html += `
+                          <div class="legend-item mr-3 mb-2">
+                              <span class="legend-color" style="background-color: ${color}; width: 12px; height: 12px; display: inline-block; border-radius: 50%; margin-right: 4px;"></span>
+                              <span class="legend-label">${__(type)}</span>
+                          </div>
+                      `;
         }
-        if (!legend_html) {
-          legend_html =
-            '<span class="text-muted">' +
-            __("No entities in graph. Click Menu → Rebuild Graph.") +
-            "</span>";
-        }
-        self.page.$main_section.find(".legend-items").html(legend_html);
-      },
-    });
+      }
+      if (!legend_html) {
+        legend_html =
+          '<span class="text-muted">' +
+          __("No entities in graph. Click Menu → Rebuild Graph.") +
+          "</span>";
+      }
+      self.page.$main_section.find(".legend-items").html(legend_html);
+    } catch (error) {
+      // If legend fetch fails, show default message
+      const legend_html =
+        '<span class="text-muted">' +
+        __("Unable to load legend. Click Menu → Rebuild Graph.") +
+        "</span>";
+      self.page.$main_section.find(".legend-items").html(legend_html);
+    }
   }
 
   setup_details_panel() {

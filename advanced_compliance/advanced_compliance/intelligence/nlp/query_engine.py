@@ -833,9 +833,17 @@ def ask_compliance_question(question, use_llm=False):
 	if not is_ai_feature_enabled("natural_language_queries"):
 		frappe.throw(_("Natural language queries are not enabled"))
 
-	# Check permissions - user needs read access to compliance data
-	if not frappe.has_permission("Control Activity", "read"):
-		frappe.throw(_("Insufficient permissions to query compliance data"))
+	# Check permissions - user needs read access to at least one compliance DocType
+	compliance_doctypes = ["Control Activity", "Risk Register Entry", "Deficiency", "Control Evidence"]
+	has_any_permission = any(frappe.has_permission(dt, "read") for dt in compliance_doctypes)
+
+	if not has_any_permission:
+		frappe.throw(
+			_(
+				"You do not have permission to query compliance data. Please contact your system administrator."
+			),
+			frappe.PermissionError,
+		)
 
 	engine = NLQueryEngine()
 	return engine.query(question, use_llm=cint(use_llm))
@@ -853,8 +861,16 @@ def get_query_suggestions(partial_query):
 	    List of suggestions
 	"""
 	# Permission check - user must have read access to at least one compliance DocType
-	if not frappe.has_permission("Control Activity", "read"):
-		frappe.throw(_("Insufficient permissions to access compliance data"))
+	compliance_doctypes = ["Control Activity", "Risk Register Entry", "Deficiency", "Control Evidence"]
+	has_any_permission = any(frappe.has_permission(dt, "read") for dt in compliance_doctypes)
+
+	if not has_any_permission:
+		frappe.throw(
+			_(
+				"You do not have permission to access compliance data. Please contact your system administrator."
+			),
+			frappe.PermissionError,
+		)
 
 	engine = NLQueryEngine()
 	return engine.get_suggestions(partial_query)
@@ -871,9 +887,17 @@ def parse_question(question):
 	Returns:
 	    Parsed query structure
 	"""
-	# Permission check - user must have read access to compliance DocTypes
-	if not frappe.has_permission("Control Activity", "read"):
-		frappe.throw(_("Insufficient permissions to access compliance data"))
+	# Permission check - user must have read access to at least one compliance DocType
+	compliance_doctypes = ["Control Activity", "Risk Register Entry", "Deficiency", "Control Evidence"]
+	has_any_permission = any(frappe.has_permission(dt, "read") for dt in compliance_doctypes)
+
+	if not has_any_permission:
+		frappe.throw(
+			_(
+				"You do not have permission to access compliance data. Please contact your system administrator."
+			),
+			frappe.PermissionError,
+		)
 
 	engine = NLQueryEngine()
 	return engine.parse_question(question)

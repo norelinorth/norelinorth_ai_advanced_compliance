@@ -16,37 +16,46 @@ class AskCompliance {
     this.check_ai_status();
   }
 
-  check_ai_status() {
+  async check_ai_status() {
     var self = this;
     // Check if AI is enabled in settings
-    frappe.call({
-      method: "frappe.client.get_value",
-      args: {
-        doctype: "AI Provider Settings",
-        fieldname: "enable_nl_queries",
-      },
-      async: false,
-      callback: function (r) {
-        if (r.message && r.message.enable_nl_queries) {
-          self.ai_enabled = true;
-          $(self.page.main)
-            .find(".ai-status")
-            .html(
-              `<span class="text-success"><i class="fa fa-check-circle"></i> ${__(
-                "AI Enhanced",
-              )}</span>`,
-            );
-        } else {
-          $(self.page.main)
-            .find(".ai-status")
-            .html(
-              `<span class="text-muted"><i class="fa fa-info-circle"></i> ${__(
-                "Rule-based mode",
-              )}</span>`,
-            );
-        }
-      },
-    });
+    try {
+      const response = await frappe.call({
+        method: "frappe.client.get_value",
+        args: {
+          doctype: "AI Provider Settings",
+          fieldname: "enable_nl_queries",
+        },
+      });
+
+      if (response.message && response.message.enable_nl_queries) {
+        self.ai_enabled = true;
+        $(self.page.main)
+          .find(".ai-status")
+          .html(
+            `<span class="text-success"><i class="fa fa-check-circle"></i> ${__(
+              "AI Enhanced",
+            )}</span>`,
+          );
+      } else {
+        $(self.page.main)
+          .find(".ai-status")
+          .html(
+            `<span class="text-muted"><i class="fa fa-info-circle"></i> ${__(
+              "Rule-based mode",
+            )}</span>`,
+          );
+      }
+    } catch (error) {
+      // If check fails, default to rule-based mode
+      $(self.page.main)
+        .find(".ai-status")
+        .html(
+          `<span class="text-muted"><i class="fa fa-info-circle"></i> ${__(
+            "Rule-based mode",
+          )}</span>`,
+        );
+    }
   }
 
   setup_page() {
@@ -54,15 +63,15 @@ class AskCompliance {
 
     // Example questions
     var examples = [
-      "Show me all high risk controls",
-      "Which controls failed testing last month?",
-      "What are the open deficiencies?",
-      "How many tests were executed this quarter?",
-      "List overdue controls",
-      "Show me SOX controls",
-      "Show me all risks",
-      "List manual controls",
-      "Show me critical deficiencies",
+      __("Show me all high risk controls"),
+      __("Which controls failed testing last month?"),
+      __("What are the open deficiencies?"),
+      __("How many tests were executed this quarter?"),
+      __("List overdue controls"),
+      __("Show me SOX controls"),
+      __("Show me all risks"),
+      __("List manual controls"),
+      __("Show me critical deficiencies"),
     ];
 
     // Build page content
@@ -208,7 +217,6 @@ class AskCompliance {
   run_ai_query(question, rule_result) {
     var self = this;
 
-    console.log("Calling AI query with use_llm=1");
     frappe.call({
       method:
         "advanced_compliance.advanced_compliance.intelligence.nlp.query_engine.ask_compliance_question",
@@ -217,22 +225,16 @@ class AskCompliance {
         use_llm: 1,
       },
       callback: function (r) {
-        console.log("AI query result:", r.message);
         self.render_results(rule_result, r.message);
       },
       error: function (err) {
         // AI query failed, just show rule-based
-        console.error("AI query failed:", err);
         self.render_results(rule_result, null);
       },
     });
   }
 
   render_results(rule_result, ai_result) {
-    console.log("render_results called");
-    console.log("  rule_result:", rule_result);
-    console.log("  ai_result:", ai_result);
-
     var html = "";
 
     // Determine which result to show prominently
@@ -241,20 +243,14 @@ class AskCompliance {
 
     // If AI result has more results or rule-based failed, swap them
     if (ai_result && ai_result.success) {
-      console.log("AI result is valid and successful");
       if (
         !rule_result.success ||
         ai_result.count > rule_result.count ||
         (rule_result.count === 0 && ai_result.count > 0)
       ) {
-        console.log("Swapping: AI becomes primary, rule becomes secondary");
         primary_result = ai_result;
         secondary_result = rule_result;
-      } else {
-        console.log("Keeping: rule is primary, AI is secondary");
       }
-    } else {
-      console.log("AI result is null or failed, only showing rule-based");
     }
 
     // Show primary result
@@ -270,16 +266,7 @@ class AskCompliance {
         secondary_result.count !== primary_result.count ||
         secondary_result.doctype !== primary_result.doctype;
 
-      console.log("Secondary result check:");
-      console.log("  has_different_results:", has_different_results);
-      console.log("  secondary_result.count:", secondary_result.count);
-
       if (has_different_results) {
-        console.log(
-          "Adding secondary result to HTML (count=" +
-            secondary_result.count +
-            ")",
-        );
         html += `<hr class="my-4">`;
         html += `<h6 class="text-muted mb-3">
 					${
@@ -289,25 +276,13 @@ class AskCompliance {
           }
 				</h6>`;
         html += this.render_single_result(secondary_result, false);
-      } else {
-        console.log("NOT adding secondary result (results are identical)");
       }
-    } else {
-      console.log("No secondary result to show");
     }
 
     $(this.page.main).find(".results-content").html(html);
   }
 
   render_single_result(result, is_primary) {
-    console.log(
-      "render_single_result called for",
-      result.query_type,
-      "is_primary:",
-      is_primary,
-    );
-    console.log("  response text:", result.response);
-
     var html = "";
 
     if (!result || !result.success) {
@@ -325,9 +300,6 @@ class AskCompliance {
     // Response summary (escape to prevent XSS)
     var safe_response = frappe.utils.xss_sanitise(result.response || "");
     var safe_doctype = frappe.utils.xss_sanitise(result.doctype || "");
-
-    console.log("  safe_response:", safe_response);
-    console.log("  safe_doctype:", safe_doctype);
 
     var badge = "";
     if (result.query_type === "llm") {
@@ -384,7 +356,7 @@ class AskCompliance {
           if (value === null || value === undefined) {
             value = "-";
           } else if (typeof value === "boolean") {
-            value = value ? "Yes" : "No";
+            value = value ? __("Yes") : __("No");
           } else if (col === "name") {
             value = `<a href="/app/${doctype_slug}/${safe_name}">${safe_name}</a>`;
           } else {

@@ -176,7 +176,7 @@ def evaluate_single_condition(field_value, operator, check_value):
 		field_value = ""
 
 	# Convert check_value to appropriate type based on field_value
-	if isinstance(field_value, (int, float)):
+	if isinstance(field_value, int | float):
 		try:
 			check_value = flt(check_value)
 		except (ValueError, TypeError):
@@ -244,7 +244,15 @@ def capture_evidence(doc, rule):
 		linked_doctypes = [dt.strip() for dt in rule.linked_doctypes.split("\n") if dt.strip()]
 		capture_linked_documents(evidence, doc, linked_doctypes)
 
-	evidence.insert(ignore_permissions=True)
+	# Validate user has permission to create Control Evidence
+	# Evidence capture is an audit function that should respect user permissions
+	if not frappe.has_permission("Control Evidence", "create"):
+		frappe.throw(
+			_("Evidence capture failed: You do not have permission to create Control Evidence records."),
+			frappe.PermissionError,
+		)
+
+	evidence.insert()
 
 	frappe.logger("compliance").info(f"Evidence captured: {evidence.name} for {doc.doctype} {doc.name}")
 
@@ -286,7 +294,8 @@ def capture_document_pdf(doc):
 				"folder": "Home/Compliance Evidence",
 			}
 		)
-		file_doc.insert(ignore_permissions=True)
+		# Permission check is handled by parent capture_evidence() function
+		file_doc.insert()
 
 		return file_doc.file_url
 
@@ -389,11 +398,20 @@ def capture_version_history(doc):
 
 	version_log = []
 	for version in versions:
+		# Truncate large version data with warning
+		changes_data = version.data
+		if version.data and len(version.data) > 5000:
+			changes_data = version.data[:5000]
+			frappe.logger("compliance").warning(
+				f"Version history truncated for {doc.doctype} {doc.name}: "
+				f"Original size {len(version.data)} chars, truncated to 5000 chars"
+			)
+
 		version_log.append(
 			{
 				"user": version.owner,
 				"timestamp": str(version.creation),
-				"changes": version.data[:5000] if version.data else None,  # Limit size
+				"changes": changes_data,
 			}
 		)
 
@@ -419,11 +437,20 @@ def capture_comments(doc):
 
 	comments_log = []
 	for comment in comments:
+		# Truncate large comment content with warning
+		content_data = comment.content
+		if comment.content and len(comment.content) > 2000:
+			content_data = comment.content[:2000]
+			frappe.logger("compliance").warning(
+				f"Comment content truncated for {doc.doctype} {doc.name}: "
+				f"Original size {len(comment.content)} chars, truncated to 2000 chars"
+			)
+
 		comments_log.append(
 			{
 				"user": comment.owner,
 				"timestamp": str(comment.creation),
-				"content": comment.content[:2000] if comment.content else None,  # Limit size
+				"content": content_data,
 			}
 		)
 

@@ -34,21 +34,23 @@ class ComplianceAnomalyDetector:
 	def __init__(self):
 		"""Initialize the anomaly detector."""
 		self.settings = self._get_settings()
-		if self.settings:
-			self.sensitivity = self.settings.get_anomaly_sensitivity_value()
+		if not self.settings:
+			frappe.throw(
+				_(
+					"AI Provider Settings not found. Please configure AI Provider Settings before using anomaly detection."
+				),
+				frappe.ValidationError,
+			)
 
-			# Warn if not configured (method returns default but we should notify)
-			if not self.settings.anomaly_sensitivity:
-				frappe.log_error(
-					message="Anomaly sensitivity not configured in AI Provider Settings. Using default (Medium).",
-					title="Anomaly Detection Configuration Warning",
-				)
-		else:
-			# No settings at all
-			self.sensitivity = 1.0
-			frappe.log_error(
-				message="AI Provider Settings not found. Using default anomaly sensitivity (Medium).",
-				title="Missing AI Provider Settings",
+		self.sensitivity = self.settings.get_anomaly_sensitivity_value()
+
+		# Validate sensitivity is configured (no fallback values allowed)
+		if not self.settings.anomaly_sensitivity:
+			frappe.throw(
+				_(
+					"Anomaly sensitivity not configured in AI Provider Settings. Please set Anomaly Sensitivity in {0}."
+				).format(frappe.bold("AI Provider Settings")),
+				frappe.ValidationError,
 			)
 
 	def _get_settings(self):

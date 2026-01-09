@@ -285,28 +285,22 @@ class SemanticSearch:
 			if not validated_fields:
 				continue
 
-			# Build OR conditions for text search with validated fields
-			or_conditions = []
-			for field in validated_fields:
-				or_conditions.append(f"`{field}` LIKE %(query)s")
-
-			if not or_conditions:
-				continue
-
 			try:
-				# Build field list with backtick quotes for safety
-				field_list = ", ".join(f"`{field}`" for field in validated_fields)
+				# Build OR filters using Frappe's filter syntax (safe from SQL injection)
+				# Format: [["field1", "like", "%query%"], "or", ["field2", "like", "%query%"], ...]
+				filters = []
+				for i, field in enumerate(validated_fields):
+					if i > 0:
+						filters.append("or")
+					filters.append([field, "like", f"%{query}%"])
 
-				# doctype is validated against SEARCHABLE_DOCTYPES whitelist (safe to use in f-string)
-				docs = frappe.db.sql(
-					f"""
-                    SELECT name, {field_list}
-                    FROM `tab{doctype}`
-                    WHERE {' OR '.join(or_conditions)}
-                    LIMIT %(limit)s
-                """,
-					{"query": f"%{query}%", "limit": limit},
-					as_dict=True,
+				# Use frappe.db.get_list with parameterized filters (standard Frappe pattern)
+				docs = frappe.db.get_list(
+					doctype,
+					filters=filters,
+					fields=["name"] + validated_fields,
+					limit_page_length=limit,
+					as_list=False,
 				)
 
 				for doc in docs:
@@ -499,6 +493,15 @@ def semantic_search(query, doctypes=None, limit=10, threshold=0.5):
 
 	if doctypes and isinstance(doctypes, str):
 		doctypes = json.loads(doctypes)
+
+	# Validate user has read permission on all requested DocTypes
+	if doctypes:
+		for doctype in doctypes:
+			if not frappe.has_permission(doctype, "read"):
+				frappe.throw(
+					_("You do not have permission to search {0}").format(frappe.bold(doctype)),
+					frappe.PermissionError,
+				)
 
 	search = SemanticSearch()
 	return search.search(query=query, doctypes=doctypes, limit=cint(limit), threshold=flt(threshold))
