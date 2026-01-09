@@ -216,7 +216,7 @@ class GraphExplorer {
       frappe.show_progress(__("Loading Graph"), 70, 100, __("Rendering..."));
 
       if (data.message) {
-        this.render_graph(data.message);
+        await this.render_graph(data.message);
       }
 
       frappe.hide_progress();
@@ -231,82 +231,89 @@ class GraphExplorer {
   }
 
   render_graph(data) {
-    const container = document.getElementById("graph-container");
+    return new Promise((resolve) => {
+      const container = document.getElementById("graph-container");
 
-    // Create datasets
-    this.nodes = new vis.DataSet(data.nodes);
-    this.edges = new vis.DataSet(data.edges);
+      // Create datasets
+      this.nodes = new vis.DataSet(data.nodes);
+      this.edges = new vis.DataSet(data.edges);
 
-    // Network options
-    const options = {
-      nodes: {
-        shape: "dot",
-        scaling: {
-          min: 10,
-          max: 30,
+      // Network options
+      const options = {
+        nodes: {
+          shape: "dot",
+          scaling: {
+            min: 10,
+            max: 30,
+          },
+          font: {
+            size: 12,
+            face: "Inter, -apple-system, system-ui, sans-serif",
+          },
         },
-        font: {
-          size: 12,
-          face: "Inter, -apple-system, system-ui, sans-serif",
+        edges: {
+          width: 1,
+          color: { inherit: "from" },
+          smooth: {
+            type: "continuous",
+          },
+          arrows: {
+            to: { enabled: true, scaleFactor: 0.5 },
+          },
         },
-      },
-      edges: {
-        width: 1,
-        color: { inherit: "from" },
-        smooth: {
-          type: "continuous",
+        physics: {
+          stabilization: {
+            iterations: 100,
+          },
+          barnesHut: {
+            gravitationalConstant: -2000,
+            springLength: 150,
+            springConstant: 0.04,
+          },
         },
-        arrows: {
-          to: { enabled: true, scaleFactor: 0.5 },
+        interaction: {
+          hover: true,
+          tooltipDelay: 200,
+          hideEdgesOnDrag: true,
         },
-      },
-      physics: {
-        stabilization: {
-          iterations: 100,
-        },
-        barnesHut: {
-          gravitationalConstant: -2000,
-          springLength: 150,
-          springConstant: 0.04,
-        },
-      },
-      interaction: {
-        hover: true,
-        tooltipDelay: 200,
-        hideEdgesOnDrag: true,
-      },
-    };
+      };
 
-    // Create network
-    this.network = new vis.Network(
-      container,
-      { nodes: this.nodes, edges: this.edges },
-      options,
-    );
+      // Create network
+      this.network = new vis.Network(
+        container,
+        { nodes: this.nodes, edges: this.edges },
+        options,
+      );
 
-    // Event handlers
-    this.network.on("click", (params) => {
-      if (params.nodes.length > 0) {
-        this.on_node_click(params.nodes[0]);
-      } else if (params.edges.length > 0) {
-        this.on_edge_click(params.edges[0]);
-      } else {
-        this.clear_selection();
-      }
+      // Wait for physics stabilization to complete before resolving
+      this.network.once("stabilizationIterationsDone", () => {
+        resolve();
+      });
+
+      // Event handlers
+      this.network.on("click", (params) => {
+        if (params.nodes.length > 0) {
+          this.on_node_click(params.nodes[0]);
+        } else if (params.edges.length > 0) {
+          this.on_edge_click(params.edges[0]);
+        } else {
+          this.clear_selection();
+        }
+      });
+
+      this.network.on("doubleClick", (params) => {
+        if (params.nodes.length > 0) {
+          this.on_node_double_click(params.nodes[0]);
+        }
+      });
+
+      // Update node count
+      this.page.set_secondary_action(
+        `${data.node_count} ${__("nodes")}, ${data.edge_count} ${__("edges")}`,
+        null,
+        "info-sign",
+      );
     });
-
-    this.network.on("doubleClick", (params) => {
-      if (params.nodes.length > 0) {
-        this.on_node_double_click(params.nodes[0]);
-      }
-    });
-
-    // Update node count
-    this.page.set_secondary_action(
-      `${data.node_count} ${__("nodes")}, ${data.edge_count} ${__("edges")}`,
-      null,
-      "info-sign",
-    );
   }
 
   async on_node_click(node_id) {
