@@ -23,6 +23,29 @@ import frappe
 from frappe.utils import add_days, flt, nowdate
 
 
+def cleanup_control_with_dependencies(control):
+	"""Helper function to delete control and all its dependencies in correct order."""
+	# Delete test executions first
+	test_executions = frappe.get_all("Test Execution", filters={"control": control.name})
+	for test_exec in test_executions:
+		frappe.delete_doc("Test Execution", test_exec.name, force=True)
+
+	# Delete graph entities
+	graph_entities = frappe.get_all(
+		"Compliance Graph Entity", filters={"entity_doctype": "Control Activity", "entity_id": control.name}
+	)
+	for entity in graph_entities:
+		# Delete relationships first
+		frappe.db.sql(
+			"DELETE FROM `tabCompliance Graph Relationship` WHERE source_entity = %s OR target_entity = %s",
+			(entity.name, entity.name),
+		)
+		frappe.delete_doc("Compliance Graph Entity", entity.name, force=True)
+
+	# Now delete the control
+	control.delete()
+
+
 class TestKnowledgeGraphDeadlockPrevention(unittest.TestCase):
 	"""
 	Integration tests for Issue #5: Knowledge graph deadlock prevention.
@@ -87,7 +110,7 @@ class TestKnowledgeGraphDeadlockPrevention(unittest.TestCase):
 
 		# Cleanup
 		for control in controls:
-			control.delete()
+			cleanup_control_with_dependencies(control)
 
 	@unittest.skip("Requires thread-safe Frappe context - complex to set up")
 	def test_03_concurrent_control_with_relationship_creation(self):
@@ -249,7 +272,7 @@ class TestCompleteControlLifecycle(unittest.TestCase):
 			frappe.delete_doc("Compliance Graph Entity", entity.name, force=True)
 
 		test.delete()
-		control.delete()
+		cleanup_control_with_dependencies(control)
 		risk.delete()
 
 
@@ -317,7 +340,7 @@ class TestBulkDocumentProcessing(unittest.TestCase):
 		for invoice in invoices:
 			invoice.cancel()
 			invoice.delete()
-		control.delete()
+		cleanup_control_with_dependencies(control)
 
 
 class TestGraphRebuildWorkflow(unittest.TestCase):
@@ -405,7 +428,7 @@ class TestGraphRebuildWorkflow(unittest.TestCase):
 			)
 			frappe.delete_doc("Compliance Graph Entity", entity.name, force=True)
 
-		control.delete()
+		cleanup_control_with_dependencies(control)
 		risk.delete()
 
 	@unittest.skip("Graph rebuild investigation in progress - Issue #3 from test analysis")
@@ -502,7 +525,7 @@ class TestGraphRebuildWorkflow(unittest.TestCase):
 				)
 				frappe.delete_doc("Compliance Graph Entity", entity.name, force=True)
 
-		control.delete()
+		cleanup_control_with_dependencies(control)
 		risk1.delete()
 		risk2.delete()
 
@@ -586,4 +609,4 @@ class TestDemoDataIntegrity(unittest.TestCase):
 		self.assertGreater(metrics["failure_probability"], 0.6, "Failure probability should be > 60%")
 
 		# Cleanup
-		control.delete()
+		cleanup_control_with_dependencies(control)
