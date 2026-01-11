@@ -5,7 +5,7 @@ with open("requirements.txt") as f:
 
 setup(
 	name="advanced_compliance",
-	version="1.0.1",
+	version="1.1.5",
 	description="Next-generation GRC with Knowledge Graph and AI Intelligence",
 	author="Noreli North",
 	packages=find_packages(),
