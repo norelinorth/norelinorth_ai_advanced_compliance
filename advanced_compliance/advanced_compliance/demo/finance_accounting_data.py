@@ -1280,7 +1280,7 @@ def _calculate_control_risk_metrics(control_name):
 	tests = frappe.get_all(
 		"Test Execution",
 		filters={"control": control_name, "test_date": [">", add_months(nowdate(), -12)]},
-		fields=["test_result", "test_date", "exceptions_noted", "follow_up_required"],
+		fields=["test_result", "test_date", "exceptions_found"],
 		order_by="test_date desc",
 	)
 
@@ -1312,7 +1312,7 @@ def _calculate_control_risk_metrics(control_name):
 	days_since_last_test = date_diff(nowdate(), tests[0].test_date) if tests else 999
 
 	# Count exceptions
-	tests_with_exceptions = [t for t in tests if t.exceptions_noted or t.follow_up_required]
+	tests_with_exceptions = [t for t in tests if t.exceptions_found]
 	exception_rate = flt(len(tests_with_exceptions) / len(tests), 3)
 
 	# Determine risk level based on failure rate

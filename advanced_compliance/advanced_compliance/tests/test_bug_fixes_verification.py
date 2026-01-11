@@ -217,6 +217,9 @@ class TestRiskPredictionCalculation(unittest.TestCase):
 					"tester": frappe.session.user,
 					"test_date": add_days(nowdate(), -i * 10),
 					"test_result": "Ineffective - Significant" if i < 6 else "Effective",  # 60% failure rate
+					"conclusion": "Control deficiency identified in testing"
+					if i < 6
+					else "Control operating effectively",
 				}
 			)
 			test.insert()
