@@ -112,9 +112,17 @@ These were fixed in the previous commit but are worth documenting:
    - Added: REMAINING_TEST_ISSUES_ANALYSIS.md
 
 2. **Commit 0b83232**: "Fix remaining test failures - cleanup dependencies and skip CI-incompatible tests"
-   - Fixed: 6 LinkExistsError failures with cleanup helper
+   - Fixed: 6 LinkExistsError failures with cleanup helper for controls
    - Fixed: 2 demo data tests (skip when company missing)
    - Fixed: 1 race condition test (skip threading test)
+
+3. **Commit 10b4d87**: "Add comprehensive test fixes summary documentation"
+   - Added: TEST_FIXES_SUMMARY.md
+
+4. **Commit 21bfa60**: "Fix Risk Register Entry deletion - add cleanup helper"
+   - Added: cleanup_risk_with_dependencies() helper function
+   - Fixed: 3 risk deletion failures (same LinkExistsError issue for risks)
+   - Tests: test_01_complete_workflow, test_01_graph_rebuild_idempotency
 
 ---
 
